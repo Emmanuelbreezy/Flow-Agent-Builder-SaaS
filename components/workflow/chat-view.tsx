@@ -3,7 +3,7 @@
 import React from "react";
 import { Paperclip, ArrowUp, Sparkles, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetPortal } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useWorkflow } from "@/context/workflow-context";
 
 export const ChatView = () => {
@@ -20,6 +20,7 @@ export const ChatView = () => {
         <SheetContent
           side="right"
           className="sm:max-w-lg! w-full p-0 border-l top-18! h-full max-h-[calc(100vh-5rem)] z-95 bg-card  rounded-lg! overflow-hidden shadow-lg"
+          overlayClass="bg-black/5! backdrop-blur-none!"
         >
           <div className="h-full flex flex-col ">
             <div className="p-4 border-b flex items-center justify-between">

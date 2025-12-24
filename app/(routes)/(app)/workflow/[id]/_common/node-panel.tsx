@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Panel } from "@/components/ai-elements/panel";
 import { cn } from "@/lib/utils";
 import { NODE_TYPES, NODE_CONFIG } from "@/constant/canvas";
+import { Panel } from "@xyflow/react";
 
 const NODE_LIST = [
   {
@@ -19,8 +19,8 @@ const NODE_LIST = [
     items: [NODE_TYPES.IF_ELSE, NODE_TYPES.USER_APPROVAL],
   },
   {
-    group: "Data",
-    items: [NODE_TYPES.SET_STATE],
+    group: "Others",
+    items: [NODE_TYPES.HTTP],
   },
 ];
 

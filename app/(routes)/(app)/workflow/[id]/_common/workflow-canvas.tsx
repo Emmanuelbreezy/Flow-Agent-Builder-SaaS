@@ -26,13 +26,30 @@ import { AgentNode } from "@/components/workflow/custom-nodes/agent/node";
 import { IfElseNode } from "@/components/workflow/custom-nodes/if-else/node";
 import { UserApprovalNode } from "@/components/workflow/custom-nodes/user-approval/node";
 import { EndNode } from "@/components/workflow/custom-nodes/end/node";
-import { generateId } from "@/lib/utils";
+import { cn, generateId } from "@/lib/utils";
 import Controls from "@/components/workflow/controls";
 import CommentNode from "@/components/workflow/custom-nodes/comment/node";
 import { NodePanel } from "./node-panel";
+import {
+  ActionBar,
+  ActionBarGroup,
+  ActionBarItem,
+} from "@/components/ui/action-bar";
+import { Save, X } from "lucide-react";
+import { HttpNode } from "@/components/workflow/custom-nodes/http/node";
 
 const WorkflowCanvas = () => {
-  const { nodes, edges, view, toolMode, setNodes, setEdges } = useWorkflow();
+  const {
+    nodes,
+    edges,
+    view,
+    toolMode,
+    setNodes,
+    setEdges,
+    hasUnsavedChanges,
+    saveChanges,
+    discardChanges,
+  } = useWorkflow();
   const { screenToFlowPosition } = useReactFlow();
 
   const isPreview = view === "preview";
@@ -44,6 +61,7 @@ const WorkflowCanvas = () => {
     [NODE_TYPES.USER_APPROVAL]: UserApprovalNode,
     [NODE_TYPES.END]: EndNode,
     [NODE_TYPES.COMMENT]: CommentNode,
+    [NODE_TYPES.HTTP]: HttpNode,
   };
 
   const onNodesChange: OnNodesChange = useCallback(
@@ -111,41 +129,68 @@ const WorkflowCanvas = () => {
   console.log("Rendering WorkflowCanvas with edges:", edges);
 
   return (
-    <div className="flex-1 h-full w-full flex relative overflow-hidden">
-      <div className="flex-1 relative h-full">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onDragOver={onDragOver}
-          onDrop={onDrop}
-          deleteKeyCode={isPreview ? null : ["Backspace", "Delete"]}
-          panOnDrag={!isPreview ? toolMode === TOOL_MODE_ENUM.HAND : false}
-          selectionOnDrag={
-            !isPreview ? toolMode === TOOL_MODE_ENUM.SELECT : false
-          }
-          panOnScroll={!isPreview}
-          zoomOnDoubleClick={false}
-          zoomOnScroll={!isPreview}
-          zoomOnPinch={!isPreview}
-          nodesDraggable={!isPreview}
-          nodesConnectable={!isPreview}
-          elementsSelectable={!isPreview}
-          disableKeyboardA11y={isPreview}
-          defaultViewport={{ x: 0, y: 0, zoom: 1.2 }}
-          //fitView
+    <>
+      <div className="flex-1 h-full w-full flex relative overflow-hidden">
+        <div
+          className={cn(
+            "flex-1 relative h-full",
+            isPreview && "pointer-events-none "
+          )}
         >
-          <Background bgColor="var(--sidebar)" />
-          {!isPreview && <NodePanel />}
-          {!isPreview && <Controls />}
-        </ReactFlow>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+            deleteKeyCode={isPreview ? null : ["Backspace", "Delete"]}
+            panOnDrag={!isPreview ? toolMode === TOOL_MODE_ENUM.HAND : false}
+            selectionOnDrag={
+              !isPreview ? toolMode === TOOL_MODE_ENUM.SELECT : false
+            }
+            panOnScroll={!isPreview}
+            zoomOnDoubleClick={false}
+            zoomOnScroll={!isPreview}
+            zoomOnPinch={!isPreview}
+            nodesDraggable={!isPreview}
+            nodesConnectable={!isPreview}
+            elementsSelectable={!isPreview}
+            disableKeyboardA11y={isPreview}
+            defaultViewport={{ x: 0, y: 0, zoom: 1.2 }}
+            //fitView
+          >
+            <Background bgColor="var(--sidebar)" />
+            {!isPreview && <NodePanel />}
+            {!isPreview && <Controls />}
+          </ReactFlow>
+        </div>
+
+        <ChatView />
       </div>
 
-      <ChatView />
-    </div>
+      {/* Action Bar for unsaved changes */}
+      <ActionBar
+        open={hasUnsavedChanges}
+        side="top"
+        align="center"
+        sideOffset={70}
+        className="max-w-xs!"
+      >
+        <ActionBarGroup>
+          <ActionBarItem onClick={discardChanges} variant="ghost">
+            <X className="size-4" />
+            Discard
+          </ActionBarItem>
+          <ActionBarItem onClick={saveChanges}>
+            <Save className="size-4" />
+            Save Changes
+          </ActionBarItem>
+        </ActionBarGroup>
+      </ActionBar>
+    </>
   );
 };
 

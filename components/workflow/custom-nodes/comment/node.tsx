@@ -11,7 +11,7 @@ const CommentNode = ({ data }: NodeProps) => {
   return (
     <div
       className={cn(
-        "w-full h-full box-border px-2 py-1 border rounded-lg transition-all duration-400 bg-amber-300"
+        "w-full h-full box-border px-2 py-1 border rounded-lg transition-all duration-400 bg-amber-300 dark:bg-[#b08915]"
       )}
       style={{
         width: "100%",
@@ -24,7 +24,8 @@ const CommentNode = ({ data }: NodeProps) => {
         value={comment || ""}
         onChange={(e) => setComment(e.target.value)}
         placeholder="write a note..."
-        className="w-full h-full resize-none border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-xs shadow-none"
+        className="w-full h-full resize-none border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-xs shadow-none
+        dark:placeholder:text-black"
       />
     </div>
   );

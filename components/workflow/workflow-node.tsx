@@ -85,7 +85,7 @@ const WorkflowNode = ({
                       {label}
                     </BaseNodeHeaderTitle>
                     {subText && (
-                      <p className="text-[11px] text-muted-foreground -mt-0.5 truncate max-w-[150px]">
+                      <p className="text-[11px] text-muted-foreground -mt-0.5 truncate max-w-[80px]">
                         {subText}
                       </p>
                     )}

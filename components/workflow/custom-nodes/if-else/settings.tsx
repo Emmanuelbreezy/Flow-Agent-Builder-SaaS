@@ -2,10 +2,10 @@
 
 import React from "react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
+import { MentionInputComponent } from "@/components/workflow/mention-input";
 
 interface IfElseSettingsProps {
   id: string;
@@ -85,14 +85,27 @@ export const IfElseSettings = ({ id, data }: IfElseSettingsProps) => {
                 placeholder="Case name (optional)"
                 className="bg-muted/50"
               />
-              <Textarea
+              <MentionInputComponent
                 value={condition.condition || ""}
-                onChange={(e) =>
-                  handleUpdateCondition(index, "condition", e.target.value)
+                placeholder="Enter condition, e.g. {{workflow.input_as_text}} == 'value'"
+                rows={2}
+                suggestions={[
+                  {
+                    id: "workflow.input_as_text",
+                    display: "workflow.input_as_text",
+                  },
+                  {
+                    id: "workflow.classification",
+                    display: "workflow.classification",
+                  },
+                  { id: "input.value", display: "input.value" },
+                  { id: "output.result", display: "output.result" },
+                ]}
+                multiline={true}
+                onChange={(value) =>
+                  handleUpdateCondition(index, "condition", value)
                 }
-                placeholder="Enter condition, e.g. input == 5"
-                rows={1}
-                className="bg-muted/50 font-mono text-xs resize-none"
+                className="bg-muted/50 font-mono text-xs"
               />
             </div>
           </div>

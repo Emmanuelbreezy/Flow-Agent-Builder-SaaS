@@ -11,9 +11,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useWorkflow } from "@/context/workflow-context";
+import { useReactFlow } from "@xyflow/react";
 
 export function WorkflowHeader() {
   const { view, setView, workflowId } = useWorkflow();
+  const { setViewport, setCenter } = useReactFlow();
+
   console.log("Workflow ID:", workflowId);
 
   const tabs = [
@@ -22,6 +25,16 @@ export function WorkflowHeader() {
   ] as const;
 
   const zIndex = view === "preview" ? "z-99" : "";
+
+  const handleSetView = (tabId: string) => {
+    if (tabId === "preview") {
+      setView("preview");
+      setViewport({ x: -400, y: 0, zoom: 1.2 });
+    } else {
+      setView("edit");
+      setViewport({ x: 400, y: 0, zoom: 1.2 });
+    }
+  };
 
   return (
     <header className="border-b border-border bg-card">
@@ -50,7 +63,7 @@ export function WorkflowHeader() {
             <TabButton
               key={tab.id}
               active={view === tab.id}
-              onClick={() => setView(tab.id)}
+              onClick={() => handleSetView(tab.id)}
               icon={tab.icon}
               label={tab.label}
             />
@@ -79,10 +92,6 @@ export function WorkflowHeader() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <Button variant="ghost" size="sm" className="h-8">
-            Evaluate
-          </Button>
 
           <Button variant="ghost" size="sm" className="h-8 gap-1.5">
             <Code className="h-3.5 w-3.5" />

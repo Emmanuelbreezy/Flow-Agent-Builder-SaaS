@@ -4,6 +4,7 @@ import {
   FileIcon,
   FileTextIcon,
   GitBranch,
+  Globe,
   Layers,
   NotebookIcon,
   Square,
@@ -24,7 +25,7 @@ export const NODE_TYPES = {
   IF_ELSE: "if-else",
   END: "end",
   MCP: "mcp",
-  SET_STATE: "set-state",
+  HTTP: "http",
   COMMENT: "comment",
 } as const;
 
@@ -119,14 +120,17 @@ export const NODE_CONFIG = {
       parameters: {},
     },
   },
-  [NODE_TYPES.SET_STATE]: {
-    type: NODE_TYPES.SET_STATE,
-    label: "Content",
-    color: "bg-purple-400",
-    icon: UserCheck,
+  [NODE_TYPES.HTTP]: {
+    type: NODE_TYPES.HTTP,
+    label: "HTTP",
+    color: "bg-blue-400",
+    icon: Globe,
     defaultData: {
       variable: "",
-      value: "",
+      method: "GET",
+      url: "",
+      headers: {},
+      body: {},
     },
   },
 } as const;

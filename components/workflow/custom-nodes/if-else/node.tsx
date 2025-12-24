@@ -18,7 +18,7 @@ export const IfElseNode = ({ data, selected, id }: NodeProps) => {
   const bgcolor = (data?.color as string) || "bg-orange-500";
 
   const conditionStyle =
-    "relative flex items-center justify-end p-2 rounded-md bg-muted/30 border border-dashed border-border text-[11px] font-medium text-muted-foreground whitespace-nowrap";
+    "relative flex items-center justify-end p-2  rounded-md bg-muted/30 border border-dashed border-border text-[11px] font-medium text-muted-foreground whitespace-nowrap";
 
   const handleDelete = () => {
     deleteElements({ nodes: [{ id }] });
@@ -40,10 +40,15 @@ export const IfElseNode = ({ data, selected, id }: NodeProps) => {
         onDelete={handleDelete}
       >
         {conditions?.map((condition: Condition, index: number) => (
-          <div key={index} className={conditionStyle}>
-            {condition.caseName ||
-              condition.condition ||
-              `Condition ${index + 1}`}
+          <div key={index} className="relative">
+            <div className={conditionStyle}>
+              <p className="whitespace-nowrap overflow-hidden  truncate max-w-[250px]">
+                {" "}
+                {condition.caseName ||
+                  condition.condition ||
+                  `Condition ${index + 1}`}
+              </p>
+            </div>
             <BaseHandle
               type="source"
               position={Position.Right}
@@ -52,8 +57,8 @@ export const IfElseNode = ({ data, selected, id }: NodeProps) => {
             />
           </div>
         ))}
-        <div className={conditionStyle}>
-          Else
+        <div className="relative">
+          <div className={conditionStyle}>Else</div>
           <BaseHandle
             type="source"
             position={Position.Right}

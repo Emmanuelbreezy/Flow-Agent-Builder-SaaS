@@ -22,6 +22,9 @@ interface WorkflowContextType {
   edges: Edge[];
   setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
   setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
+  hasUnsavedChanges: boolean;
+  saveChanges: () => void;
+  discardChanges: () => void;
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(
@@ -94,12 +97,35 @@ export function WorkflowProvider({
       position: { x: 400, y: 200 },
       deletable: false,
       data: {
-        ...startNodeConfig.defaultData, // Use all default properties from config
+        ...startNodeConfig.defaultData,
         color: startNodeConfig.color,
       },
     },
   ]);
   const [edges, setEdges] = useState<Edge[]>([]);
+
+  // Track changes
+  const [savedNodes, setSavedNodes] = useState<Node[]>(nodes);
+  const [savedEdges, setSavedEdges] = useState<Edge[]>(edges);
+
+  // Check for changes using useMemo
+  const hasUnsavedChanges = React.useMemo(() => {
+    const nodesChanged = JSON.stringify(nodes) !== JSON.stringify(savedNodes);
+    const edgesChanged = JSON.stringify(edges) !== JSON.stringify(savedEdges);
+    return nodesChanged || edgesChanged;
+  }, [nodes, edges, savedNodes, savedEdges]);
+
+  const saveChanges = () => {
+    setSavedNodes(nodes);
+    setSavedEdges(edges);
+    // TODO: Add API call to save to backend
+    console.log("Saving workflow changes...");
+  };
+
+  const discardChanges = () => {
+    setNodes(savedNodes);
+    setEdges(savedEdges);
+  };
 
   // const updateNodeData = useCallback(
   //   (nodeId: string, data: Record<string, unknown>) => {
@@ -126,6 +152,9 @@ export function WorkflowProvider({
         edges,
         setNodes,
         setEdges,
+        hasUnsavedChanges,
+        saveChanges,
+        discardChanges,
       }}
     >
       {children}
