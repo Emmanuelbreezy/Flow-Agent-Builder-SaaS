@@ -4,11 +4,11 @@ import React from "react";
 import { Panel } from "@/components/ai-elements/panel";
 import { Node } from "@xyflow/react";
 import { NODE_TYPES } from "@/constant/canvas";
-import { StartSettings } from "@/components/canvas/custom-nodes/start/settings";
-import { AgentSettings } from "@/components/canvas/custom-nodes/agent/settings";
-import { IfElseSettings } from "@/components/canvas/custom-nodes/if-else/settings";
-import { UserApprovalSettings } from "@/components/canvas/custom-nodes/user-approval/settings";
-import { EndSettings } from "@/components/canvas/custom-nodes/end/settings";
+import { StartSettings } from "@/components/workflow/custom-nodes/start/settings";
+import { AgentSettings } from "@/components/workflow/custom-nodes/agent/settings";
+import { IfElseSettings } from "@/components/workflow/custom-nodes/if-else/settings";
+import { UserApprovalSettings } from "@/components/workflow/custom-nodes/user-approval/settings";
+import { EndSettings } from "@/components/workflow/custom-nodes/end/settings";
 
 interface RightPanelProps {
   selectedNode: Node | null;

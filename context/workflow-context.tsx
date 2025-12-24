@@ -1,14 +1,13 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 import { Edge, Node } from "@xyflow/react";
-import { NODE_TYPES, TOOL_MODE_ENUM, ToolModeType } from "@/constant/canvas";
+import {
+  NODE_TYPES,
+  TOOL_MODE_ENUM,
+  ToolModeType,
+  NODE_CONFIG,
+} from "@/constant/canvas";
 import { generateId } from "@/lib/utils";
 
 export type WorkflowView = "edit" | "preview" | "playground";
@@ -84,6 +83,10 @@ export function WorkflowProvider({
 }) {
   const [view, setView] = useState<WorkflowView>("edit");
   const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.HAND);
+
+  // Get start node config with all default properties
+  const startNodeConfig = NODE_CONFIG[NODE_TYPES.START];
+
   const [nodes, setNodes] = useState<Node[]>([
     {
       id: generateId(NODE_TYPES.START),
@@ -91,9 +94,8 @@ export function WorkflowProvider({
       position: { x: 400, y: 200 },
       deletable: false,
       data: {
-        label: "Start",
-        description: "Workflow entry point",
-        handles: { target: false, source: true },
+        ...startNodeConfig.defaultData, // Use all default properties from config
+        color: startNodeConfig.color,
       },
     },
   ]);

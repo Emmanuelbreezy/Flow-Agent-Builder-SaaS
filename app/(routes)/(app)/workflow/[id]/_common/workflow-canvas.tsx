@@ -1,6 +1,5 @@
 "use client";
-import React, { useCallback, useState } from "react";
-import { nanoid } from "nanoid";
+import React, { useCallback } from "react";
 import {
   addEdge,
   applyEdgeChanges,
@@ -10,25 +9,31 @@ import {
   OnEdgesChange,
   OnNodesChange,
   useReactFlow,
-  Node,
+  ReactFlow,
+  Background,
 } from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 import { useWorkflow } from "@/context/workflow-context";
-import { Canvas } from "@/components/ai-elements/canvas";
-import Controls from "@/components/canvas/controls";
-import { ChatView } from "@/components/canvas/chat-view";
-import { NODE_TYPES, NodeType, TOOL_MODE_ENUM } from "@/constant/canvas";
-import WorkflowCanvasPanel from "./workflow-canvas-panel";
-import { StartNode } from "@/components/canvas/custom-nodes/start/node";
-import { AgentNode } from "@/components/canvas/custom-nodes/agent/node";
-import { IfElseNode } from "@/components/canvas/custom-nodes/if-else/node";
-import { UserApprovalNode } from "@/components/canvas/custom-nodes/user-approval/node";
-import { EndNode } from "@/components/canvas/custom-nodes/end/node";
+import { ChatView } from "@/components/workflow/chat-view";
+import {
+  NodeType,
+  TOOL_MODE_ENUM,
+  NODE_CONFIG,
+  NODE_TYPES,
+} from "@/constant/canvas";
+import { StartNode } from "@/components/workflow/custom-nodes/start/node";
+import { AgentNode } from "@/components/workflow/custom-nodes/agent/node";
+import { IfElseNode } from "@/components/workflow/custom-nodes/if-else/node";
+import { UserApprovalNode } from "@/components/workflow/custom-nodes/user-approval/node";
+import { EndNode } from "@/components/workflow/custom-nodes/end/node";
 import { generateId } from "@/lib/utils";
+import Controls from "@/components/workflow/controls";
+import CommentNode from "@/components/workflow/custom-nodes/comment/node";
+import { NodePanel } from "./node-panel";
 
 const WorkflowCanvas = () => {
   const { nodes, edges, view, toolMode, setNodes, setEdges } = useWorkflow();
   const { screenToFlowPosition } = useReactFlow();
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const isPreview = view === "preview";
 
@@ -38,26 +43,14 @@ const WorkflowCanvas = () => {
     [NODE_TYPES.IF_ELSE]: IfElseNode,
     [NODE_TYPES.USER_APPROVAL]: UserApprovalNode,
     [NODE_TYPES.END]: EndNode,
+    [NODE_TYPES.COMMENT]: CommentNode,
   };
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => {
       setNodes((nds) => applyNodeChanges(changes, nds));
-      console.log(changes, "changes");
-      // Track node selection
-      const selectionChange = changes.find(
-        (change) => change.type === "select"
-      );
-      if (selectionChange && "selected" in selectionChange) {
-        if (selectionChange.selected) {
-          const selected = nodes.find((n) => n.id === selectionChange.id);
-          setSelectedNode(selected || null);
-        } else {
-          setSelectedNode(null);
-        }
-      }
     },
-    [setNodes, nodes]
+    [setNodes]
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
@@ -85,9 +78,12 @@ const WorkflowCanvas = () => {
       ) as string;
       if (!nodeDataStr) return;
 
-      const data = JSON.parse(nodeDataStr);
-      const type = data.type as NodeType;
-      console.log("Dropped node data:", data);
+      const draggedData = JSON.parse(nodeDataStr);
+      const type = draggedData.type as NodeType;
+
+      // Get the full node configuration with default data
+      const nodeConfig = NODE_CONFIG[type];
+      if (!nodeConfig) return;
 
       // ✅ Use hook method directly
       const position = screenToFlowPosition({
@@ -97,14 +93,15 @@ const WorkflowCanvas = () => {
 
       const newNode = {
         id: generateId(type),
-        type: type as NodeType,
+        type: type,
         position,
-        deletable: true,
+        deletable: type !== NODE_TYPES.START, // Start node cannot be deleted
         data: {
-          ...data,
-          label: data.name, // Use name as label
+          ...nodeConfig.defaultData, // Use all default properties from config
+          color: nodeConfig.color,
         },
       };
+
       setNodes((nds) => [...nds, newNode]);
     },
     [screenToFlowPosition, setNodes]
@@ -116,7 +113,7 @@ const WorkflowCanvas = () => {
   return (
     <div className="flex-1 h-full w-full flex relative overflow-hidden">
       <div className="flex-1 relative h-full">
-        <Canvas
+        <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
@@ -125,17 +122,26 @@ const WorkflowCanvas = () => {
           onConnect={onConnect}
           onDragOver={onDragOver}
           onDrop={onDrop}
+          deleteKeyCode={isPreview ? null : ["Backspace", "Delete"]}
           panOnDrag={!isPreview ? toolMode === TOOL_MODE_ENUM.HAND : false}
           selectionOnDrag={
             !isPreview ? toolMode === TOOL_MODE_ENUM.SELECT : false
           }
-          defaultViewport={{ x: 0, y: 0, zoom: 1.2 }} // ✅ Set to 50%
-          fitView={false} // ✅ Disable fitView if using defaultViewport
-          disabled={isPreview}
+          panOnScroll={!isPreview}
+          zoomOnDoubleClick={false}
+          zoomOnScroll={!isPreview}
+          zoomOnPinch={!isPreview}
+          nodesDraggable={!isPreview}
+          nodesConnectable={!isPreview}
+          elementsSelectable={!isPreview}
+          disableKeyboardA11y={isPreview}
+          defaultViewport={{ x: 0, y: 0, zoom: 1.2 }}
+          //fitView
         >
-          {!isPreview && <WorkflowCanvasPanel selectedNode={selectedNode} />}
+          <Background bgColor="var(--sidebar)" />
+          {!isPreview && <NodePanel />}
           {!isPreview && <Controls />}
-        </Canvas>
+        </ReactFlow>
       </div>
 
       <ChatView />
