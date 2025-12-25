@@ -1,4 +1,7 @@
 "use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Folder, WorkflowIcon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,30 +15,17 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import Logo from "@/components/logo";
-import {
-  SquaresFour,
-  GearSix,
-  CreditCard,
-  Lightning,
-} from "@phosphor-icons/react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 const navItems = [
   {
     title: "Workflows",
-    url: "/dashboard",
-    icon: SquaresFour,
+    url: "/workflow",
+    icon: WorkflowIcon,
   },
   {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: GearSix,
-  },
-  {
-    title: "Billing",
-    url: "/dashboard/billing",
-    icon: CreditCard,
+    title: "Templates",
+    url: "/workflow/templates",
+    icon: Folder,
   },
 ];
 
@@ -59,10 +49,7 @@ const AppSidebar = () => {
                     className="data-[active=true]:bg-primary data-[active=true]:text-primary-foreground hover:bg-primary/10 transition-colors"
                   >
                     <Link href={item.url} className="flex items-center gap-3">
-                      <item.icon
-                        size={20}
-                        weight={pathname === item.url ? "fill" : "regular"}
-                      />
+                      <item.icon size={20} />
                       <span className="font-medium">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -73,7 +60,7 @@ const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4">
-        <CreditUsageCard />
+        {/* <CreditUsageCard /> */}
         <div className="mt-4 text-[10px] text-center text-muted-foreground font-medium uppercase">
           © 2025 Flow.ai
         </div>
@@ -82,31 +69,31 @@ const AppSidebar = () => {
   );
 };
 
-const CreditUsageCard = () => {
-  return (
-    <>
-      <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-primary">
-          <Lightning size={18} weight="fill" />
-          <span className="text-xs font-bold uppercase tracking-wider">
-            Credits
-          </span>
-        </div>
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs font-medium">
-            <span>Usage</span>
-            <span>75%</span>
-          </div>
-          <div className="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
-            <div className="h-full bg-primary w-[75%]" />
-          </div>
-        </div>
-        <button className="w-full py-2 text-xs font-semibold bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
-          Upgrade Plan
-        </button>
-      </div>
-    </>
-  );
-};
+// const CreditUsageCard = () => {
+//   return (
+//     <>
+//       <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 space-y-3">
+//         <div className="flex items-center gap-2 text-primary">
+//           <Lightning size={18} weight="fill" />
+//           <span className="text-xs font-bold uppercase tracking-wider">
+//             Credits
+//           </span>
+//         </div>
+//         <div className="space-y-1">
+//           <div className="flex justify-between text-xs font-medium">
+//             <span>Usage</span>
+//             <span>75%</span>
+//           </div>
+//           <div className="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
+//             <div className="h-full bg-primary w-[75%]" />
+//           </div>
+//         </div>
+//         <button className="w-full py-2 text-xs font-semibold bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
+//           Upgrade Plan
+//         </button>
+//       </div>
+//     </>
+//   );
+// };
 
 export default AppSidebar;

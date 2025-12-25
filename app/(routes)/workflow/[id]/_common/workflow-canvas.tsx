@@ -20,14 +20,13 @@ import {
   TOOL_MODE_ENUM,
   NODE_CONFIG,
   NODE_TYPES,
-} from "@/constant/canvas";
+} from "@/lib/workflow/node-config";
 import { StartNode } from "@/components/workflow/custom-nodes/start/node";
 import { AgentNode } from "@/components/workflow/custom-nodes/agent/node";
 import { IfElseNode } from "@/components/workflow/custom-nodes/if-else/node";
 import { UserApprovalNode } from "@/components/workflow/custom-nodes/user-approval/node";
 import { EndNode } from "@/components/workflow/custom-nodes/end/node";
 import { generateId } from "@/lib/helper";
-import { cn } from "@/lib/utils";
 import Controls from "@/components/workflow/controls";
 import CommentNode from "@/components/workflow/custom-nodes/comment/node";
 import { NodePanel } from "./node-panel";
@@ -92,16 +91,13 @@ const WorkflowCanvas = () => {
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
-      const nodeDataStr = event.dataTransfer.getData(
+      const node_type = event.dataTransfer.getData(
         "application/reactflow"
-      ) as string;
-      if (!nodeDataStr) return;
-
-      const draggedData = JSON.parse(nodeDataStr);
-      const type = draggedData.type as NodeType;
+      ) as NodeType;
+      if (!node_type) return;
 
       // Get the full node configuration with default data
-      const nodeConfig = NODE_CONFIG[type];
+      const nodeConfig = NODE_CONFIG[node_type];
       if (!nodeConfig) return;
 
       // ✅ Use hook method directly
@@ -111,12 +107,14 @@ const WorkflowCanvas = () => {
       });
 
       const newNode = {
-        id: generateId(type),
-        type: type,
+        id: generateId(node_type),
+        type: node_type,
         position,
-        deletable: type !== NODE_TYPES.START, // Start node cannot be deleted
+        deletable: node_type !== NODE_TYPES.START, // Start node cannot be deleted
         data: {
-          ...nodeConfig.defaultData, // Use all default properties from config
+          // Use all default properties from
+          ...nodeConfig.defaultData,
+          outputSchema: nodeConfig.defaultOutputSchema,
           color: nodeConfig.color,
         },
       };

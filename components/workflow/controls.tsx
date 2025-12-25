@@ -1,6 +1,6 @@
 "use client";
 
-import { TOOL_MODE_ENUM } from "@/constant/canvas";
+import { TOOL_MODE_ENUM } from "@/lib/workflow/node-config";
 import { Button } from "@/components/ui/button";
 import {
   HandIcon,

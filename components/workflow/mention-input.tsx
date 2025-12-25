@@ -7,14 +7,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BracesIcon, Variable } from "lucide-react";
 import { useWorkflow } from "@/context/workflow-context";
-import { NODE_CONFIG, NodeType } from "@/constant/canvas";
 
 import {
   Command,
   CommandList,
   CommandItem,
   CommandEmpty,
-  CommandGroup,
 } from "@/components/ui/command";
 
 type Suggestion = {
@@ -30,7 +28,6 @@ interface MentionInputComponentProps {
   className?: string;
   multiline?: boolean;
   rows?: number;
-  suggestions?: Suggestion[];
   showTriggerButton?: boolean;
   nodeId?: string;
 }
@@ -42,34 +39,53 @@ export function MentionInputComponent({
   className,
   multiline = false,
   rows = 4,
-  suggestions: customSuggestions = [],
   showTriggerButton = true,
   nodeId,
 }: MentionInputComponentProps) {
-  const { getVariablesForNode, nodes } = useWorkflow();
+  const { getVariablesForNode } = useWorkflow();
 
   // Generate suggestions from upstream nodes if nodeId provided
   const suggestions = React.useMemo(() => {
-    if (!nodeId) return customSuggestions;
-
-    const filteredNodes = getVariablesForNode(nodeId);
+    if (!nodeId) return [];
+    const availableNodes = getVariablesForNode(nodeId);
     const result: Suggestion[] = [];
-
-    filteredNodes.forEach((node) => {
-      const nodeData = nodes.find((n) => n.id === node.id);
-      if (!nodeData) return;
-      const config = NODE_CONFIG[nodeData.type as NodeType];
-      config?.outputs().forEach((output: any) => {
+    availableNodes.forEach((node) => {
+      const nodeName = node.name.toLowerCase().replace(/ /g, "_");
+      // Loop through outputSchema from node data
+      node.outputSchema.forEach((output: string) => {
         result.push({
-          id: `${node.id}.${output.id}`,
-          display: `${node.name}.${output.id}`,
-          description: output.type,
+          id: `${nodeName}.${output}`,
+          display: `${nodeName}.${output}`,
+          //id: `${node.id}.${output}`
         });
       });
     });
 
     return result;
-  }, [nodeId, nodes, getVariablesForNode, customSuggestions]);
+  }, [nodeId, getVariablesForNode]);
+
+  // Generate suggestions from upstream nodes if nodeId provided
+  // const suggestions = React.useMemo(() => {
+  //   if (!nodeId) return customSuggestions;
+
+  //   const filteredNodes = getVariablesForNode(nodeId);
+  //   const result: Suggestion[] = [];
+
+  //   filteredNodes.forEach((node) => {
+  //     const nodeData = nodes.find((n) => n.id === node.id);
+  //     if (!nodeData) return;
+  //     const config = NODE_CONFIG[nodeData.type as NodeType];
+  //     config?.outputs().forEach((output: any) => {
+  //       result.push({
+  //         id: `${node.id}.${output.id}`,
+  //         display: `${node.name}.${output.id}`,
+  //         description: output.type,
+  //       });
+  //     });
+  //   });
+
+  //   return result;
+  // }, [nodeId, nodes, getVariablesForNode, customSuggestions]);
 
   const handleTriggerClick = () => {
     onChange(value + "{{");

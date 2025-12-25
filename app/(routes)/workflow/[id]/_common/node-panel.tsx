@@ -2,7 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { NODE_TYPES, NODE_CONFIG } from "@/constant/canvas";
+import { NODE_TYPES, NODE_CONFIG } from "@/lib/workflow/node-config";
 import { Panel } from "@xyflow/react";
 
 const NODE_LIST = [
@@ -11,15 +11,11 @@ const NODE_LIST = [
     items: [NODE_TYPES.AGENT, NODE_TYPES.END, NODE_TYPES.COMMENT],
   },
   {
-    group: "Tools",
-    items: [NODE_TYPES.MCP],
-  },
-  {
     group: "Logic",
     items: [NODE_TYPES.IF_ELSE, NODE_TYPES.USER_APPROVAL],
   },
   {
-    group: "Others",
+    group: "Network",
     items: [NODE_TYPES.HTTP],
   },
 ];
@@ -27,10 +23,7 @@ const NODE_LIST = [
 export const NodePanel = () => {
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     // Only pass the node type, the full config will be loaded in onDrop
-    event.dataTransfer.setData(
-      "application/reactflow",
-      JSON.stringify({ type: nodeType })
-    );
+    event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
   };
 

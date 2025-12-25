@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,8 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import AgentCard from "./_common/agent-card";
+import AgentCard from ".//agent-card";
 
 interface Project {
   id: string;
@@ -30,7 +30,7 @@ interface Template {
   icon: string;
 }
 
-const Dashboard = () => {
+const MainContent = () => {
   const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [workflowName, setWorkflowName] = useState<string>("");
@@ -211,4 +211,4 @@ function CreateWorkflowDialog({
   );
 }
 
-export default Dashboard;
+export default MainContent;
