@@ -30,7 +30,7 @@ export const NodePanel = () => {
   return (
     <Panel
       position="top-left"
-      className="w-60 h-fit bg-card shadow-xl pb-5 flex flex-col"
+      className="w-60 h-fit bg-card shadow-xl pb-5 flex flex-col rounded-lg"
     >
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {NODE_LIST.map((group) => (

@@ -301,7 +301,7 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
         </div>
 
         {outputFormat === "json" && (
-          <div className="space-y-2 border-t pt-3">
+          <div className="space-y-2 border-t pt-3 pb-3">
             <Label className="text-xs font-medium">JSON Schema</Label>
             <JsonSchema
               schema={responseSchema}

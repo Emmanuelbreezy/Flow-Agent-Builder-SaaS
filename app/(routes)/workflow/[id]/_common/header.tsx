@@ -29,10 +29,10 @@ export function WorkflowHeader() {
   const handleSetView = (tabId: string) => {
     if (tabId === "preview") {
       setView("preview");
-      setViewport({ x: -400, y: 0, zoom: 1.2 });
-    } else {
+      setViewport({ x: 0, y: 0, zoom: 1.2 });
+    } else if (tabId === "edit") {
+      setViewport({ x: 200, y: 0, zoom: 1.2 });
       setView("edit");
-      setViewport({ x: 400, y: 0, zoom: 1.2 });
     }
   };
 
@@ -58,7 +58,7 @@ export function WorkflowHeader() {
         </div>
 
         {/* Center section - Tabs */}
-        <div className="flex items-center gap-1 rounded-lg bg-muted p-1 z-99!">
+        <div className="flex items-center gap-1 rounded-lg bg-muted p-1 z-999!">
           {tabs.map((tab) => (
             <TabButton
               key={tab.id}
