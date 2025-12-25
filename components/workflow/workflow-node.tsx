@@ -160,7 +160,7 @@ const WorkflowNode = ({
       {settingComponent && (
         <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
           <DialogContent
-            className="max-w-2xl  px-0! pb-2!"
+            className="max-w-md!  px-0! pb-2!"
             overlayClass="bg-black/5! backdrop-blur-none!"
           >
             <DialogHeader className="px-4">
@@ -169,7 +169,7 @@ const WorkflowNode = ({
                 <DialogDescription>{settingsDescription}</DialogDescription>
               )}
             </DialogHeader>
-            <div className="px-4 space-y-4 h-full max-h-[80vh] overflow-y-auto">
+            <div className="px-4 space-y-4 h-full max-h-[65vh] overflow-y-auto">
               {settingComponent}
             </div>
             <DialogFooter className="px-4 border-t pt-2">

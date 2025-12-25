@@ -142,7 +142,7 @@ export function MentionInputComponent({
           "[&_textarea]:w-full [&_textarea]:outline-none"
         )}
         customSuggestionsContainer={(children) => (
-          <div className="z-50 w-56 rounded-lg border border-border bg-popover shadow-md">
+          <div className="z-50 min-w-64 max-w-80 rounded-lg border border-border bg-popover shadow-md">
             <Command>
               <CommandList className="max-h-64 overflow-y-auto">
                 {React.Children.count(children) === 0 && (
@@ -165,12 +165,12 @@ export function MentionInputComponent({
             <CommandItem
               value={entry.display}
               className={cn(
-                "flex justify-between text-xs",
+                "flex justify-between text-sm",
                 focused && "bg-accent text-accent-foreground"
               )}
             >
               <div className="flex flex-1 items-start gap-2">
-                <Variable className="mt-0.5 size-3 text-muted-foreground" />
+                📃
                 <span className="font-mono truncate">{entry.display}</span>
               </div>
               <span className="text-muted-foreground">

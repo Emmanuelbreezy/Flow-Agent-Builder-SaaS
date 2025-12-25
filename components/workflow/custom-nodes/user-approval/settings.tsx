@@ -47,7 +47,7 @@ export const UserApprovalSettings = ({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 mb-1">
         <Label htmlFor="message" className="text-sm">
           Message
         </Label>
@@ -59,13 +59,6 @@ export const UserApprovalSettings = ({
           rows={3}
           className="bg-muted/50 resize-none"
         />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs text-muted-foreground hover:text-foreground ml-auto flex items-center gap-1"
-        >
-          Add context {"{$}"}
-        </Button>
       </div>
     </div>
   );

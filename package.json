@@ -12,6 +12,7 @@
     "@base-ui/react": "^1.0.0",
     "@delcui/react-mentions": "^1.0.3",
     "@diceui/mention": "^0.8.0",
+    "@diceui/tags-input": "^0.7.2",
     "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-direction": "^1.1.1",
     "@radix-ui/react-slot": "^1.2.4",
