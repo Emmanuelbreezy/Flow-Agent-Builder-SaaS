@@ -8,16 +8,16 @@ const Page = async ({ params }: { params: { id: string } }) => {
   const { id } = await params;
   return (
     <div className="min-h-screen bg-background">
-      <WorkflowProvider workflowId={id}>
-        <ReactFlowProvider>
+      <ReactFlowProvider>
+        <WorkflowProvider workflowId={id}>
           <div className="flex flex-col h-screen relative">
             <WorkflowHeader />
             <main className="flex-1 relative overflow-hidden">
               <WorkflowCanvas />
             </main>
           </div>
-        </ReactFlowProvider>
-      </WorkflowProvider>
+        </WorkflowProvider>
+      </ReactFlowProvider>
     </div>
   );
 };

@@ -26,7 +26,8 @@ import { AgentNode } from "@/components/workflow/custom-nodes/agent/node";
 import { IfElseNode } from "@/components/workflow/custom-nodes/if-else/node";
 import { UserApprovalNode } from "@/components/workflow/custom-nodes/user-approval/node";
 import { EndNode } from "@/components/workflow/custom-nodes/end/node";
-import { cn, generateId } from "@/lib/utils";
+import { generateId } from "@/lib/helper";
+import { cn } from "@/lib/utils";
 import Controls from "@/components/workflow/controls";
 import CommentNode from "@/components/workflow/custom-nodes/comment/node";
 import { NodePanel } from "./node-panel";
@@ -131,12 +132,7 @@ const WorkflowCanvas = () => {
   return (
     <>
       <div className="flex-1 h-full w-full flex relative overflow-hidden">
-        <div
-          className={cn(
-            "flex-1 relative h-full",
-            isPreview && "pointer-events-none "
-          )}
-        >
+        <div className={"flex-1 relative h-full"}>
           <ReactFlow
             nodes={nodes}
             edges={edges}

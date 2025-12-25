@@ -8,7 +8,7 @@ import {
   ToolModeType,
   NODE_CONFIG,
 } from "@/constant/canvas";
-import { generateId } from "@/lib/utils";
+import { generateId } from "@/lib/helper";
 
 export type WorkflowView = "edit" | "preview" | "playground";
 
@@ -25,57 +25,12 @@ interface WorkflowContextType {
   hasUnsavedChanges: boolean;
   saveChanges: () => void;
   discardChanges: () => void;
+  getVariablesForNode: (nodeId: string) => { id: string; name: string }[];
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(
   undefined
 );
-
-// const initialNodes: Node[] = [
-//   {
-//     id: nanoid(),
-//     type: NODE_TYPES.START,
-//     position: { x: 0, y: 100 },
-//     data: {
-//       label: "Start",
-//       description: "Workflow entry point",
-//       handles: { target: false, source: true },
-//     },
-//   },
-//   {
-//     id: nanoid(),
-//     type: NODE_TYPES.AGENT,
-//     position: { x: 400, y: 100 },
-//     data: {
-//       label: "AI Agent",
-//       description: "Process user request",
-//       prompt: "You are a helpful assistant that analyzes user sentiment.",
-//     },
-//   },
-//   {
-//     id: nanoid(),
-//     type: NODE_TYPES.IF_ELSE,
-//     position: { x: 750, y: 100 },
-//     data: {
-//       label: "Condition",
-//       conditions: [
-//         "input.sentiment == 'positive'",
-//         "input.sentiment == 'negative'",
-//       ],
-//     },
-//   },
-//   {
-//     id: nanoid(),
-//     type: NODE_TYPES.USER_APPROVAL,
-//     position: { x: 1150, y: 100 },
-//     data: {
-//       label: "User approval",
-//       options: ["Approve", "Reject"],
-//     },
-//   },
-// ];
-
-// const initialEdges: Edge[] = [];
 
 export function WorkflowProvider({
   children,
@@ -109,9 +64,27 @@ export function WorkflowProvider({
   const [savedEdges, setSavedEdges] = useState<Edge[]>(edges);
 
   // Check for changes using useMemo
+  // const hasUnsavedChanges = React.useMemo(() => {
+  //   const nodesChanged = JSON.stringify(nodes) !== JSON.stringify(savedNodes);
+  //   const edgesChanged = JSON.stringify(edges) !== JSON.stringify(savedEdges);
+  //   return nodesChanged || edgesChanged;
+  // }, [nodes, edges, savedNodes, savedEdges]);
+
+  // Check for changes - only data, ignore position/selection
   const hasUnsavedChanges = React.useMemo(() => {
-    const nodesChanged = JSON.stringify(nodes) !== JSON.stringify(savedNodes);
-    const edgesChanged = JSON.stringify(edges) !== JSON.stringify(savedEdges);
+    const getNodeData = (list: Node[]) =>
+      list.map((n) => ({ id: n.id, type: n.type, data: n.data }));
+    const getEdgeData = (list: Edge[]) =>
+      list.map((e) => ({ source: e.source, target: e.target, id: e.id }));
+
+    const nodesChanged =
+      JSON.stringify(getNodeData(nodes)) !==
+      JSON.stringify(getNodeData(savedNodes));
+
+    const edgesChanged =
+      JSON.stringify(getEdgeData(edges)) !==
+      JSON.stringify(getEdgeData(savedEdges));
+
     return nodesChanged || edgesChanged;
   }, [nodes, edges, savedNodes, savedEdges]);
 
@@ -127,18 +100,35 @@ export function WorkflowProvider({
     setEdges(savedEdges);
   };
 
-  // const updateNodeData = useCallback(
-  //   (nodeId: string, data: Record<string, unknown>) => {
-  //     setNodes((nds) =>
-  //       nds.map((node) =>
-  //         node.id === nodeId
-  //           ? { ...node, data: { ...node.data, ...data } }
-  //           : node
-  //       )
-  //     );
-  //   },
-  //   []
-  // );
+  // Get upstream node IDs
+  const getFilteredEdges = (nodeId: string): Set<string> => {
+    const upstream = new Set<string>();
+    const addToSet = (id: string) => {
+      edges
+        .filter((e) => e.target === id)
+        .forEach((e) => {
+          upstream.add(e.source);
+          addToSet(e.source);
+        });
+    };
+    addToSet(nodeId);
+    return upstream;
+  };
+
+  // Get variables for a node (only from upstream)
+  const getVariablesForNode = (nodeId: string) => {
+    const edgeIds = getFilteredEdges(nodeId);
+    return nodes
+      .filter((n) => edgeIds.has(n.id))
+      .map((n) => ({
+        id: n.id,
+        name: String(
+          n.data.name ||
+            NODE_CONFIG[n.type as keyof typeof NODE_CONFIG]?.label ||
+            "Unnamed"
+        ),
+      }));
+  };
 
   return (
     <WorkflowContext.Provider
@@ -150,11 +140,12 @@ export function WorkflowProvider({
         workflowId,
         nodes,
         edges,
-        setNodes,
-        setEdges,
         hasUnsavedChanges,
         saveChanges,
         discardChanges,
+        getVariablesForNode,
+        setNodes,
+        setEdges,
       }}
     >
       {children}

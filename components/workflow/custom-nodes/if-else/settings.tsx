@@ -86,21 +86,10 @@ export const IfElseSettings = ({ id, data }: IfElseSettingsProps) => {
                 className="bg-muted/50"
               />
               <MentionInputComponent
+                nodeId={id}
                 value={condition.condition || ""}
                 placeholder="Enter condition, e.g. {{workflow.input_as_text}} == 'value'"
                 rows={2}
-                suggestions={[
-                  {
-                    id: "workflow.input_as_text",
-                    display: "workflow.input_as_text",
-                  },
-                  {
-                    id: "workflow.classification",
-                    display: "workflow.classification",
-                  },
-                  { id: "input.value", display: "input.value" },
-                  { id: "output.result", display: "output.result" },
-                ]}
                 multiline={true}
                 onChange={(value) =>
                   handleUpdateCondition(index, "condition", value)

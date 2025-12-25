@@ -81,7 +81,7 @@ const WorkflowNode = ({
                     <Icon className="size-3.5 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <BaseNodeHeaderTitle className="text-sm">
+                    <BaseNodeHeaderTitle className="text-sm pr-1 font-medium!">
                       {label}
                     </BaseNodeHeaderTitle>
                     {subText && (
@@ -168,7 +168,7 @@ const WorkflowNode = ({
                 <DialogDescription>{settingsDescription}</DialogDescription>
               )}
             </DialogHeader>
-            <div className="px-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="px-4 space-y-4 h-full max-h-[80vh] overflow-y-auto">
               {settingComponent}
             </div>
           </DialogContent>

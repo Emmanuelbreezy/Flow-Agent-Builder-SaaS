@@ -6,12 +6,15 @@ import { MentionsInput, Mention } from "react-mentions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BracesIcon, Variable } from "lucide-react";
+import { useWorkflow } from "@/context/workflow-context";
+import { NODE_CONFIG, NodeType } from "@/constant/canvas";
 
 import {
   Command,
   CommandList,
   CommandItem,
   CommandEmpty,
+  CommandGroup,
 } from "@/components/ui/command";
 
 type Suggestion = {
@@ -29,6 +32,7 @@ interface MentionInputComponentProps {
   rows?: number;
   suggestions?: Suggestion[];
   showTriggerButton?: boolean;
+  nodeId?: string;
 }
 
 export function MentionInputComponent({
@@ -38,9 +42,35 @@ export function MentionInputComponent({
   className,
   multiline = false,
   rows = 4,
-  suggestions = [],
-  showTriggerButton = false,
+  suggestions: customSuggestions = [],
+  showTriggerButton = true,
+  nodeId,
 }: MentionInputComponentProps) {
+  const { getVariablesForNode, nodes } = useWorkflow();
+
+  // Generate suggestions from upstream nodes if nodeId provided
+  const suggestions = React.useMemo(() => {
+    if (!nodeId) return customSuggestions;
+
+    const filteredNodes = getVariablesForNode(nodeId);
+    const result: Suggestion[] = [];
+
+    filteredNodes.forEach((node) => {
+      const nodeData = nodes.find((n) => n.id === node.id);
+      if (!nodeData) return;
+      const config = NODE_CONFIG[nodeData.type as NodeType];
+      config?.outputs().forEach((output: any) => {
+        result.push({
+          id: `${node.id}.${output.id}`,
+          display: `${node.name}.${output.id}`,
+          description: output.type,
+        });
+      });
+    });
+
+    return result;
+  }, [nodeId, nodes, getVariablesForNode, customSuggestions]);
+
   const handleTriggerClick = () => {
     onChange(value + "{{");
   };
@@ -51,7 +81,7 @@ export function MentionInputComponent({
     "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
     "aria-invalid:border-destructive dark:aria-invalid:border-destructive/50",
     "disabled:cursor-not-allowed disabled:opacity-50",
-    multiline ? "min-h-16" : "h-9",
+    multiline ? "min-h-18" : "h-9",
     "p-2",
     className
   );
@@ -96,7 +126,7 @@ export function MentionInputComponent({
           "[&_textarea]:w-full [&_textarea]:outline-none"
         )}
         customSuggestionsContainer={(children) => (
-          <div className="z-50 w-72 rounded-xl border border-border bg-popover shadow-md">
+          <div className="z-50 w-56 rounded-lg border border-border bg-popover shadow-md">
             <Command>
               <CommandList className="max-h-64 overflow-y-auto">
                 {React.Children.count(children) === 0 && (
@@ -119,21 +149,17 @@ export function MentionInputComponent({
             <CommandItem
               value={entry.display}
               className={cn(
-                "flex items-start gap-2",
+                "flex justify-between text-xs",
                 focused && "bg-accent text-accent-foreground"
               )}
             >
-              <Variable className="mt-0.5 size-4 text-muted-foreground" />
-              <div className="flex flex-col">
-                <span className="font-mono text-xs font-medium">
-                  {entry.display}
-                </span>
-                {/* {entry?.description && (
-                  <span className="text-[11px] text-muted-foreground">
-                    {entry?.description}
-                  </span>
-                )} */}
+              <div className="flex flex-1 items-start gap-2">
+                <Variable className="mt-0.5 size-3 text-muted-foreground" />
+                <span className="font-mono truncate">{entry.display}</span>
               </div>
+              <span className="text-muted-foreground">
+                {(entry as Suggestion)?.description}
+              </span>
             </CommandItem>
           )}
         />
