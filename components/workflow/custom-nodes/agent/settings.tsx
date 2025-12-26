@@ -5,14 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { MentionInputComponent } from "../../mention-input";
 import { useReactFlow } from "@xyflow/react";
-import {
-  FileText,
-  GlobeIcon,
-  Plus,
-  X,
-  Check,
-  ChevronsUpDown,
-} from "lucide-react";
+import { Plus, X, Check, ChevronsUpDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,33 +29,11 @@ import {
 } from "@/components/ui/popover";
 import { useState } from "react";
 import { JsonSchema } from "./json-schema";
+import { MODELS, TOOLS } from "@/lib/workflow/constants";
 
 const OUTPUT_FORMATS = [
   { value: "text", label: "Text" },
   { value: "json", label: "JSON" },
-];
-
-const MODELS = [
-  { value: "gpt-4", label: "GPT-4" },
-  { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
-  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
-  { value: "claude-3-opus", label: "Claude 3 Opus" },
-  { value: "claude-3-sonnet", label: "Claude 3 Sonnet" },
-];
-
-const TOOLS = [
-  {
-    id: "web_search",
-    name: "Web Search",
-    description: "Search the web",
-    icon: GlobeIcon,
-  },
-  {
-    id: "scraper",
-    name: "Scraper",
-    description: "Scrape web content",
-    icon: FileText,
-  },
 ];
 
 interface AgentSettingsProps {
@@ -206,7 +177,7 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
               >
                 {model
                   ? MODELS.find((m) => m.value === model)?.label
-                  : "Select model..."}
+                  : MODELS[0]?.label}
                 <ChevronsUpDown className="size-3 opacity-50" />
               </Button>
             </PopoverTrigger>

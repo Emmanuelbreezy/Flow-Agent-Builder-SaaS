@@ -15,7 +15,7 @@ import { useReactFlow } from "@xyflow/react";
 
 export function WorkflowHeader() {
   const { view, setView, workflowId } = useWorkflow();
-  const { setViewport, setCenter } = useReactFlow();
+  const { setViewport } = useReactFlow();
 
   console.log("Workflow ID:", workflowId);
 
@@ -30,7 +30,7 @@ export function WorkflowHeader() {
     if (tabId === "preview") {
       setView("preview");
       setViewport({ x: 0, y: 0, zoom: 1.2 });
-    } else if (tabId === "edit") {
+    } else {
       setViewport({ x: 200, y: 0, zoom: 1.2 });
       setView("edit");
     }

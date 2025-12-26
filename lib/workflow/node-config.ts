@@ -106,7 +106,7 @@ export const NODE_CONFIG = {
       headers: {},
       body: {},
     },
-    defaultOutputSchema: ["output.body", "output.status"],
+    defaultOutputSchema: ["output.status", "output.headers", "output.body"],
   },
 
   [NODE_TYPES.END]: {
