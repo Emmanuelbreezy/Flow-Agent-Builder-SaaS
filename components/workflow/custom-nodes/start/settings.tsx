@@ -12,12 +12,11 @@ import {
 import { toast } from "sonner";
 
 interface StartSettingsProps {
-  id: string;
-  data: any;
+  nodeId: string;
 }
 
-export const StartSettings = ({ data }: StartSettingsProps) => {
-  const inputVariable = data.inputSchema || "start.input";
+export const StartSettings = ({ nodeId }: StartSettingsProps) => {
+  const inputVariable = `${nodeId}-input`;
 
   const copyVariable = () => {
     navigator.clipboard.writeText(`{{${inputVariable}}}`);

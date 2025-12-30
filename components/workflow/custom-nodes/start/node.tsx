@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React from "react";
 import { Play } from "lucide-react";
@@ -6,10 +5,10 @@ import { NodeProps } from "@xyflow/react";
 import WorkflowNode from "../../workflow-node";
 import { StartSettings } from "./settings";
 
-export const StartNode = ({ data, selected, id }: NodeProps) => {
-  console.log(data, "data");
-  console.log(selected, "selected");
+export const StartNode = (node: NodeProps) => {
+  const { data, selected } = node;
   const bgcolor = (data?.color as string) || "bg-emerald-500";
+  const nodeId = data?.nodeId as string;
 
   return (
     <>
@@ -24,7 +23,7 @@ export const StartNode = ({ data, selected, id }: NodeProps) => {
         color={bgcolor}
         settingsTitle="Start Node Settings"
         settingsDescription="Configure the workflow starting point"
-        settingComponent={<StartSettings id={id} data={data} />}
+        settingComponent={<StartSettings nodeId={nodeId} />}
       />
     </>
   );

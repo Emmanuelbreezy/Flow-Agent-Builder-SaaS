@@ -21,7 +21,7 @@ const NODE_LIST = [
   },
 ];
 
-export const NodePanel = () => {
+export const NodePanel = ({ disabled }: { disabled?: boolean }) => {
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     // Only pass the node type, the full config will be loaded in onDrop
     event.dataTransfer.setData("application/reactflow", nodeType);
@@ -49,8 +49,11 @@ export const NodePanel = () => {
                     key={nodeType}
                     draggable
                     onDragStart={(e) => onDragStart(e, nodeType)}
+                    disabled={disabled}
                     className={cn(
-                      "flex items-center gap-3 p-1 rounded-lg hover:bg-accent transition-all cursor-grab active:cursor-grabbing group"
+                      `flex items-center gap-3 p-1 rounded-lg hover:bg-accent transition-all cursor-grab active:cursor-grabbing group
+                      disabled:opacity-50 disabled:pointer-events-none
+                      `
                     )}
                   >
                     <div

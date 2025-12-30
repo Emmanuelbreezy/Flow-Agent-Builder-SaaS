@@ -31,6 +31,7 @@ import { HttpNode } from "@/components/workflow/custom-nodes/http/node";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { useUpdateWorkflow } from "@/features/use-workflow";
 import { NodeTypeEnum } from "@/lib/generated/prisma/enums";
+import { Spinner } from "@/components/ui/spinner";
 
 const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
   const {
@@ -43,6 +44,8 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
     onEdgesChange,
   } = useWorkflow();
   const { screenToFlowPosition } = useReactFlow();
+
+  console.log(nodes, "nodes");
 
   // Use unsaved changes hook
   const { hasUnsavedChanges, discardChanges } = useUnsavedChanges({
@@ -154,6 +157,7 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
             onDragOver={onDragOver}
             onDrop={onDrop}
             defaultViewport={{ x: 0, y: 0, zoom: 1.2 }}
+
             //fitView
             // panOnDrag={!isPreview ? toolMode === TOOL_MODE_ENUM.HAND : false}
             //zoomOnDoubleClick={false}
@@ -162,7 +166,7 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
               variant={BackgroundVariant.Dots}
               bgColor="var(--sidebar)"
             />
-            {!isPreview && <NodePanel />}
+            {!isPreview && <NodePanel disabled={isSaving} />}
             {!isPreview && <Controls />}
           </ReactFlow>
         </div>
@@ -179,13 +183,17 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
         className="max-w-xs"
       >
         <ActionBarGroup>
-          <ActionBarItem onClick={handleDiscardChanges} variant="ghost">
+          <ActionBarItem
+            disabled={isSaving}
+            onClick={handleDiscardChanges}
+            variant="ghost"
+          >
             <X className="size-4" />
             Discard
           </ActionBarItem>
           <ActionBarItem onClick={handleSaveChanges} disabled={isSaving}>
             <Save className="size-4" />
-            {isSaving ? "Saving..." : "Save Changes"}
+            {isSaving ? <Spinner /> : "Save Changes"}
           </ActionBarItem>
         </ActionBarGroup>
       </ActionBar>

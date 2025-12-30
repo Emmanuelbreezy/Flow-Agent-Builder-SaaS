@@ -56,7 +56,6 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
     color: "bg-emerald-500",
     inputs: {
       inputValue: "",
-      inputSchema: "start.input",
     },
     outputs: ["input"],
   },
@@ -170,6 +169,7 @@ export function createNode({
     position,
     deletable: type === NodeTypeEnum.START ? false : true,
     data: {
+      nodeId: id,
       name: config.label,
       ...config.inputs,
       outputs: config.outputs,
