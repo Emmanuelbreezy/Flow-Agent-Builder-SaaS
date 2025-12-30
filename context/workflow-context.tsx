@@ -2,35 +2,27 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Edge, Node } from "@xyflow/react";
-import {
-  NODE_TYPES,
-  TOOL_MODE_ENUM,
-  ToolModeType,
-  NODE_CONFIG,
-  NodeType,
-} from "@/lib/workflow/node-config";
-import { generateId } from "@/lib/helper";
-import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { useEdgesState, useNodesState } from "@xyflow/react";
 
-export type WorkflowView = "edit" | "preview" | "playground";
+import { ToolModeType, TOOL_MODE_ENUM } from "@/lib/workflow/constants";
+import { WorkflowEdgeType, WorkflowNodeType } from "@/types/workflow";
+
+export type WorkflowView = "edit" | "preview";
 
 interface WorkflowContextType {
   view: WorkflowView;
   setView: (view: WorkflowView) => void;
   toolMode: ToolModeType;
   setToolMode: (mode: ToolModeType) => void;
-  workflowId: string;
-  nodes: Node[];
-  edges: Edge[];
-  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
-  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
-  hasUnsavedChanges: boolean;
-  saveChanges: () => void;
-  discardChanges: () => void;
+  nodes: WorkflowNodeType[];
+  edges: WorkflowEdgeType[];
+  setNodes: React.Dispatch<React.SetStateAction<WorkflowNodeType[]>>;
+  setEdges: React.Dispatch<React.SetStateAction<WorkflowEdgeType[]>>;
+  onNodesChange: (changes: any) => void;
+  onEdgesChange: (changes: any) => void;
   getVariablesForNode: (
-    nodeId: string
-  ) => { id: string; name: string; outputSchema?: any }[];
+    id: string
+  ) => { nodeId: string; name: string; outputs?: any }[];
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(
@@ -38,65 +30,72 @@ const WorkflowContext = createContext<WorkflowContextType | undefined>(
 );
 
 export function WorkflowProvider({
-  children,
   workflowId,
+  initialNodes,
+  initialEdges,
+  children,
 }: {
   children: ReactNode;
   workflowId: string;
+  initialNodes: WorkflowNodeType[];
+  initialEdges: WorkflowEdgeType[];
 }) {
   const [view, setView] = useState<WorkflowView>("edit");
   const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.HAND);
+  const [nodes, setNodes, onNodesChange] = useNodesState(
+    [] as WorkflowNodeType[]
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+    [] as WorkflowEdgeType[]
+  );
 
-  // Get start node config with all default properties
-  const startNodeConfig = NODE_CONFIG[NODE_TYPES.START];
+  const [prevWorkflowId, setPrevWorkflowId] = useState(workflowId);
+  if (workflowId !== prevWorkflowId) {
+    setPrevWorkflowId(workflowId);
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+  }
 
-  const [nodes, setNodes] = useState<Node[]>([
-    {
-      id: generateId(NODE_TYPES.START),
-      type: NODE_TYPES.START,
-      position: { x: 400, y: 200 },
-      deletable: false,
-      data: {
-        ...startNodeConfig.defaultData,
-        outputSchema: startNodeConfig.defaultOutputSchema,
-        color: startNodeConfig.color,
-      },
-    },
-  ]);
-  const [edges, setEdges] = useState<Edge[]>([]);
-
-  // Use the hook for tracking changes
-  const { hasUnsavedChanges, saveChanges, discardChanges } = useUnsavedChanges({
-    nodes,
-    edges,
-  });
+  // // Get start node config with all default properties
+  // const startNodeConfig = NODE_CONFIG[NODE_TYPES.START];
+  // const initialNodes: Node[] = [
+  //   {
+  //     id: generateId(NODE_TYPES.START),
+  //     type: NODE_TYPES.START,
+  //     position: { x: 100, y: 200 },
+  //     deletable: false,
+  //     data: {
+  //       ...startNodeConfig.inputs,
+  //       outputs: startNodeConfig.outputs,
+  //       color: startNodeConfig.color,
+  //     },
+  //   },
+  // ];
 
   // Get upstream node IDs
-  const getUpstreamNodes = (nodeId: string): Set<string> => {
+  const getUpstreamNodes = (id: string): Set<string> => {
     const upstream = new Set<string>();
-    const addToSet = (id: string) => {
+    const addToSet = (_id: string) => {
       edges
-        .filter((e) => e.target === id)
+        .filter((e) => e.target === _id)
         .forEach((e) => {
           upstream.add(e.source);
           addToSet(e.source);
         });
     };
-    addToSet(nodeId);
+    addToSet(id);
     return upstream;
   };
 
   // Get variables for a node (only from upstream)
-  const getVariablesForNode = (nodeId: string) => {
-    const upstreamIds = getUpstreamNodes(nodeId);
+  const getVariablesForNode = (id: string) => {
+    const upstreamIds = getUpstreamNodes(id);
     return nodes
       .filter((n) => upstreamIds.has(n.id))
       .map((n) => ({
-        id: n.id,
-        name: String(
-          n.data.name || NODE_CONFIG[n.type as NodeType]?.label || "Unnamed"
-        ),
-        outputSchema: n.data.outputSchema || [], // ← Get from node data!
+        nodeId: n.nodeId,
+        name: String(n.data.name || "Unnamed"),
+        outputs: n.data.outputs || [], // ← Get from node data!
       }));
   };
 
@@ -107,15 +106,13 @@ export function WorkflowProvider({
         setView,
         toolMode,
         setToolMode,
-        workflowId,
         nodes,
         edges,
-        hasUnsavedChanges,
-        saveChanges,
-        discardChanges,
         getVariablesForNode,
         setNodes,
         setEdges,
+        onNodesChange,
+        onEdgesChange,
       }}
     >
       {children}

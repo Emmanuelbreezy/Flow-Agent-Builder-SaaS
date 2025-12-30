@@ -17,7 +17,7 @@ interface StartSettingsProps {
 }
 
 export const StartSettings = ({ data }: StartSettingsProps) => {
-  const inputVariable = data.inputVariable || "input_as_text";
+  const inputVariable = data.inputSchema || "start.input";
 
   const copyVariable = () => {
     navigator.clipboard.writeText(`{{${inputVariable}}}`);

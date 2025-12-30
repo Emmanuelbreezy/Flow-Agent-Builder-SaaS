@@ -2,21 +2,22 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { NODE_TYPES, NODE_CONFIG } from "@/lib/workflow/node-config";
+import { NODE_CONFIG } from "@/lib/workflow/node-config";
 import { Panel } from "@xyflow/react";
+import { NodeTypeEnum } from "@/lib/generated/prisma/enums";
 
 const NODE_LIST = [
   {
     group: "Core",
-    items: [NODE_TYPES.AGENT, NODE_TYPES.END, NODE_TYPES.COMMENT],
+    items: [NodeTypeEnum.AGENT, NodeTypeEnum.END, NodeTypeEnum.COMMENT],
   },
   {
     group: "Logic",
-    items: [NODE_TYPES.IF_ELSE, NODE_TYPES.USER_APPROVAL],
+    items: [NodeTypeEnum.IF_ELSE, NodeTypeEnum.USER_APPROVAL],
   },
   {
     group: "Network",
-    items: [NODE_TYPES.HTTP],
+    items: [NodeTypeEnum.HTTP],
   },
 ];
 
@@ -44,7 +45,7 @@ export const NodePanel = () => {
                 const Icon = config.icon;
 
                 return (
-                  <div
+                  <button
                     key={nodeType}
                     draggable
                     onDragStart={(e) => onDragStart(e, nodeType)}
@@ -63,7 +64,7 @@ export const NodePanel = () => {
                     <span className="text-[14px] font-medium text-foreground">
                       {config.label}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
             </div>

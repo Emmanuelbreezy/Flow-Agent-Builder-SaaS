@@ -1,5 +1,12 @@
 import { GlobeIcon } from "lucide-react";
 
+export const TOOL_MODE_ENUM = {
+  SELECT: "select",
+  HAND: "hand",
+} as const;
+
+export type ToolModeType = (typeof TOOL_MODE_ENUM)[keyof typeof TOOL_MODE_ENUM];
+
 export const MODELS = [
   { value: "gpt-4", label: "GPT-4" },
   { value: "gpt-4-turbo", label: "GPT-4 Turbo" },

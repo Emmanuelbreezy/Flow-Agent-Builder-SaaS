@@ -5,16 +5,13 @@ import { Paperclip, ArrowUp, Sparkles, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useWorkflow } from "@/context/workflow-context";
-import { useReactFlow } from "@xyflow/react";
 
 export const ChatView = () => {
-  const { setViewport } = useReactFlow();
   const { view, setView } = useWorkflow();
   const isPreview = view === "preview";
 
   const handlePreviewClose = () => {
     setView("edit");
-    setViewport({ x: 200, y: 0, zoom: 1.2 });
   };
 
   return (

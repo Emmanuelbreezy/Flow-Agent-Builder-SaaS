@@ -31,7 +31,6 @@ interface WorkflowNodeProps {
   color?: string;
   status?: "initial" | "loading" | "error" | "success";
   className?: string;
-  renderDescription?: React.ReactNode;
   children?: React.ReactNode;
   settingComponent?: React.ReactNode;
   settingsTitle?: string;
@@ -46,10 +45,9 @@ const WorkflowNode = ({
   icon: Icon,
   handles,
   selected,
-  color = "bg-blue-500",
+  color = "bg-gray-500",
   status = "initial",
   className,
-  renderDescription,
   children,
   settingComponent,
   settingsTitle,
@@ -151,9 +149,6 @@ const WorkflowNode = ({
             </BaseNode>
           </NodeStatusIndicator>
         </div>
-        {renderDescription && (
-          <div className="max-w-40 w-full p-1">{renderDescription}</div>
-        )}
       </div>
 
       {/* Settings Dialog */}

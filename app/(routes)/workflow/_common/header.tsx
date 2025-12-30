@@ -1,31 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { LogOut, MoonIcon, SunIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, MoonIcon, SunIcon } from "lucide-react";
-import Logo from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-interface HeaderProps {
-  userName?: string;
-  userEmail?: string;
-}
-
-const Header: React.FC<HeaderProps> = ({
-  userName = "User",
-  userEmail = "user@example.com",
-}) => {
+const Header = () => {
   const { theme, setTheme } = useTheme();
+  const { user } = useKindeBrowserClient();
+
   const isDark = theme === "dark";
   const [isOpen, setIsOpen] = useState(false);
 
@@ -62,21 +56,17 @@ const Header: React.FC<HeaderProps> = ({
                 className="h-8 w-8
                   shrink-0 rounded-full"
               >
-                <AvatarImage src={""} alt={""} />
-                <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
-                  {userName?.charAt(0)}
-                  {userName?.charAt(0)}
+                <AvatarImage
+                  src={user?.picture || ""}
+                  alt={user?.given_name || ""}
+                />
+                <AvatarFallback className="rounded-lg">
+                  {user?.given_name?.charAt(0)}
+                  {user?.family_name?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="font-medium text-sm text-foreground">
-                  {userName}
-                </p>
-                <p className="text-xs text-muted-foreground">{userEmail}</p>
-              </div>
-              <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Logout</span>

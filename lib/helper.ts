@@ -2,11 +2,8 @@
 import { nanoid } from "nanoid";
 import Mustache from "mustache";
 
-/**
- * Generate a unique ID with a type prefix
- * */
 export function generateId(type: string): string {
-  return `${type}-${nanoid()}`;
+  return `${type.toLowerCase()}-${nanoid(10)}`;
 }
 
 // Replace {{variables}} with actual data

@@ -11,13 +11,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useWorkflow } from "@/context/workflow-context";
-import { useReactFlow } from "@xyflow/react";
 
-export function WorkflowHeader() {
-  const { view, setView, workflowId } = useWorkflow();
-  const { setViewport } = useReactFlow();
-
-  console.log("Workflow ID:", workflowId);
+export function WorkflowHeader({ name }: { name?: string }) {
+  const { view, setView } = useWorkflow();
 
   const tabs = [
     { id: "edit", label: "Edit", icon: Pencil },
@@ -26,36 +22,24 @@ export function WorkflowHeader() {
 
   const zIndex = view === "preview" ? "z-99" : "";
 
-  const handleSetView = (tabId: string) => {
-    if (tabId === "preview") {
-      setView("preview");
-      setViewport({ x: 0, y: 0, zoom: 1.2 });
-    } else {
-      setViewport({ x: 200, y: 0, zoom: 1.2 });
-      setView("edit");
-    }
+  const handleSetView = (tabId: "edit" | "preview") => {
+    setView(tabId);
   };
 
   return (
     <header className="border-b border-border bg-card">
       <div className="flex h-14 items-center justify-between px-4">
         {/* Left section */}
-        <div className={`flex items-center gap-3 ${zIndex}`}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            render={<Link href="/dashboard" />}
-          >
+        <Link className={`flex items-center gap-3 ${zIndex}`} href="/workflow">
+          <Button variant="secondary" size="icon" className="h-8 w-8">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div className="flex items-center gap-2">
-            <h1 className="text-sm font-semibold">New agent</h1>
-            <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-              Draft
-            </span>
+            <h1 className="text-sm font-semibold truncate max-w-50">
+              {name || "Untitled Workflow"}
+            </h1>
           </div>
-        </div>
+        </Link>
 
         {/* Center section - Tabs */}
         <div className="flex items-center gap-1 rounded-lg bg-muted p-1 z-999!">

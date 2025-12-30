@@ -4,57 +4,69 @@ import {
   FileIcon,
   GitBranch,
   Globe,
-  Layers,
+  Play,
   Square,
   UserCheck,
 } from "lucide-react";
+import { generateId } from "@/lib/helper";
+import { executeStart } from "@/components/workflow/custom-nodes/start/executor";
+import { executeAgent } from "@/components/workflow/custom-nodes/agent/executor";
+import { executeHttp } from "@/components/workflow/custom-nodes/http/executor";
+import { executeIfElse } from "@/components/workflow/custom-nodes/if-else/executor";
+import { executeUserApproval } from "@/components/workflow/custom-nodes/user-approval/executor";
+import { executeEnd } from "@/components/workflow/custom-nodes/end/executor";
+import { NodeTypeEnum } from "../generated/prisma/enums";
 
-export const TOOL_MODE_ENUM = {
-  SELECT: "select",
-  HAND: "hand",
-} as const;
+// export const NODE_TYPES = {
+//   START: NodeTypeEnum.START,
+//   AGENT: NodeTypeEnum.AGENT,
+//   USER_APPROVAL: NodeTypeEnum.USER_APPROVAL,
+//   IF_ELSE: NodeTypeEnum.IF_ELSE,
+//   END: NodeTypeEnum.END,
+//   HTTP: NodeTypeEnum.HTTP,
+//   COMMENT: NodeTypeEnum.COMMENT,
+// } as const;
 
-export type ToolModeType = (typeof TOOL_MODE_ENUM)[keyof typeof TOOL_MODE_ENUM];
+export type NodeType = (typeof NodeTypeEnum)[keyof typeof NodeTypeEnum];
 
-export type NodeDataType = {
-  type: NodeType;
-  label: string;
-  color: string;
-  icon: React.ElementType;
-  id: string;
-  position: { x: number; y: number };
-  data: Record<string, any>;
+export const NODE_EXECUTORS = {
+  [NodeTypeEnum.START]: executeStart,
+  [NodeTypeEnum.AGENT]: executeAgent,
+  [NodeTypeEnum.IF_ELSE]: executeIfElse,
+  [NodeTypeEnum.HTTP]: executeHttp,
+  [NodeTypeEnum.USER_APPROVAL]: executeUserApproval,
+  [NodeTypeEnum.END]: executeEnd,
 };
 
-export const NODE_TYPES = {
-  START: "start",
-  AGENT: "agent",
-  USER_APPROVAL: "user-approval",
-  IF_ELSE: "if-else",
-  END: "end",
-  HTTP: "http",
-  COMMENT: "comment",
-} as const;
+// Next
+type NodeConfigBase = {
+  type: NodeType;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+  inputs: Record<string, any>;
+  outputs: string[];
+};
 
-export type NodeType = (typeof NODE_TYPES)[keyof typeof NODE_TYPES];
-
-export const NODE_CONFIG = {
-  [NODE_TYPES.START]: {
-    type: NODE_TYPES.START,
+export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
+  [NodeTypeEnum.START]: {
+    type: NodeTypeEnum.START,
     label: "Start",
+    icon: Play,
     color: "bg-emerald-500",
-    defaultData: {
-      name: "Start",
+    inputs: {
+      inputValue: "",
+      inputSchema: "start.input",
     },
-    defaultOutputSchema: ["input"],
+    outputs: ["input"],
   },
 
-  [NODE_TYPES.AGENT]: {
-    type: NODE_TYPES.AGENT,
+  [NodeTypeEnum.AGENT]: {
+    type: NodeTypeEnum.AGENT,
     label: "Agent",
     icon: Brain,
     color: "bg-blue-500",
-    defaultData: {
+    inputs: {
       name: "Agent",
       instructions: "",
       includeChatHistory: true,
@@ -63,15 +75,15 @@ export const NODE_CONFIG = {
       outputFormat: "text", // ← text or json
       responseSchema: null, // ← null until user adds schema
     },
-    defaultOutputSchema: ["output.text"], // ← Default for text mode
+    outputs: ["output.text"], // ← Default for text mode
   },
 
-  [NODE_TYPES.IF_ELSE]: {
-    type: NODE_TYPES.IF_ELSE,
+  [NodeTypeEnum.IF_ELSE]: {
+    type: NodeTypeEnum.IF_ELSE,
     label: "If / Else",
     color: "bg-orange-500",
     icon: GitBranch,
-    defaultData: {
+    inputs: {
       conditions: [
         {
           caseName: "",
@@ -79,60 +91,100 @@ export const NODE_CONFIG = {
         },
       ],
     },
-    defaultOutputSchema: ["output.result"],
+    outputs: ["output.result"],
   },
 
-  [NODE_TYPES.USER_APPROVAL]: {
-    type: NODE_TYPES.USER_APPROVAL,
+  [NodeTypeEnum.USER_APPROVAL]: {
+    type: NodeTypeEnum.USER_APPROVAL,
     label: "User Approval",
     color: "bg-amber-400",
     icon: UserCheck,
-    defaultData: {
+    inputs: {
       name: "User Approval",
       message: "",
       options: ["Approve", "Reject"],
     },
-    defaultOutputSchema: ["output.response"],
+    outputs: ["output.response"],
   },
 
-  [NODE_TYPES.HTTP]: {
-    type: NODE_TYPES.HTTP,
+  [NodeTypeEnum.HTTP]: {
+    type: NodeTypeEnum.HTTP,
     label: "HTTP",
     color: "bg-blue-400",
     icon: Globe,
-    defaultData: {
+    inputs: {
       method: "GET",
       url: "",
       headers: {},
       body: {},
     },
-    defaultOutputSchema: ["output.status", "output.headers", "output.body"],
+    outputs: ["output.status", "output.headers", "output.body"],
   },
 
-  [NODE_TYPES.END]: {
-    type: NODE_TYPES.END,
+  [NodeTypeEnum.END]: {
+    type: NodeTypeEnum.END,
     label: "End",
     color: "bg-red-400",
     icon: Square,
-    defaultData: {
-      outputValue: "",
+    inputs: {
+      value: "",
     },
-    defaultOutputSchema: [],
+    outputs: ["output.text"],
   },
 
-  [NODE_TYPES.COMMENT]: {
-    type: NODE_TYPES.COMMENT,
-    label: "Note",
+  [NodeTypeEnum.COMMENT]: {
+    type: NodeTypeEnum.COMMENT,
+    label: "Comment",
     color: "bg-gray-500",
     icon: FileIcon,
-    defaultData: {
+    inputs: {
       comment: "",
     },
-    defaultOutputSchema: [],
+    outputs: [],
   },
 } as const;
 
-export const getNodeConfig = (type: NodeType) => NODE_CONFIG?.[type] || {};
+export const getNodeConfig = (type: NodeType) => {
+  const nodetype = NODE_CONFIG?.[type];
+  if (!nodetype) {
+    throw new Error(`No node config found for node type: ${type}`);
+  }
+  return nodetype;
+};
+
+export type CreateNodeOptions = {
+  type: NodeType;
+  position?: { x: number; y: number };
+};
+
+export function createNode({
+  type,
+  position = { x: 400, y: 200 },
+}: CreateNodeOptions) {
+  const config = getNodeConfig(type);
+  const id = generateId(type);
+  return {
+    id,
+    nodeId: id,
+    type,
+    position,
+    deletable: type === NodeTypeEnum.START ? false : true,
+    data: {
+      name: config.label,
+      ...config.inputs,
+      outputs: config.outputs,
+      color: config.color,
+    },
+  };
+}
+
+export function getNodeExecutor(nodeType: NodeType) {
+  const executor = NODE_EXECUTORS[nodeType as keyof typeof NODE_EXECUTORS];
+  if (!executor) {
+    throw new Error(`No executor found for node type: ${nodeType}`);
+  }
+  return executor;
+}
 
 // Node configuration with default data and outputs
 // export const NODE_CONFIG = {

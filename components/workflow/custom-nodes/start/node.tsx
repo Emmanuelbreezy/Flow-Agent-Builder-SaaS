@@ -14,7 +14,7 @@ export const StartNode = ({ data, selected, id }: NodeProps) => {
   return (
     <>
       <WorkflowNode
-        label="Start"
+        label={"Start"}
         subText="Trigger"
         className="min-w-28!"
         isDeletable={false}

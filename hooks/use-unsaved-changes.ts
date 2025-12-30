@@ -1,53 +1,50 @@
 // lib/hooks/useUnsavedChanges.ts
-import { useMemo, useState, useCallback } from "react";
-import { Node, Edge } from "@xyflow/react";
+import { useMemo, useCallback } from "react";
+import { WorkflowEdgeType, WorkflowNodeType } from "@/types/workflow";
+import { useWorkflowStore } from "@/store/workflow-store";
+
 interface UseUnsavedChangesReturn {
   hasUnsavedChanges: boolean;
-  saveChanges: () => void;
-  discardChanges: () => void;
-  reset: () => void;
+  //saveChanges: () => void;
+  discardChanges: () => {
+    nodes: WorkflowNodeType[];
+    edges: WorkflowEdgeType[];
+  };
 }
 
 export function useUnsavedChanges({
   nodes,
   edges,
 }: {
-  nodes: Node[];
-  edges: Edge[];
+  nodes: WorkflowNodeType[];
+  edges: WorkflowEdgeType[];
 }): UseUnsavedChangesReturn {
-  const [savedState, setSavedState] = useState({ nodes, edges });
+  const { savedNodes, savedEdges } = useWorkflowStore();
 
   // Check for changes - only data, ignore position/selection
   const hasUnsavedChanges = useMemo(() => {
-    const nodeData = (list: Node[]) =>
+    const nodeData = (list: WorkflowNodeType[]) =>
       list.map((n) => ({ id: n.id, type: n.type, data: n.data }));
-    const edgeData = (list: Edge[]) =>
+    const edgeData = (list: WorkflowEdgeType[]) =>
       list.map((e) => ({ source: e.source, target: e.target, id: e.id }));
 
     return (
       JSON.stringify(nodeData(nodes)) !==
-        JSON.stringify(nodeData(savedState.nodes)) ||
-      JSON.stringify(edgeData(edges)) !==
-        JSON.stringify(edgeData(savedState.edges))
+        JSON.stringify(nodeData(savedNodes)) ||
+      JSON.stringify(edgeData(edges)) !== JSON.stringify(edgeData(savedEdges))
     );
-  }, [nodes, edges, savedState]);
+  }, [nodes, edges, savedNodes, savedEdges]);
 
-  const saveChanges = useCallback(() => {
-    setSavedState({ nodes, edges });
-  }, [nodes, edges]);
+  // const saveChanges = useCallback(() => {
+  //   setSavedState(nodes, edges);
+  // }, [nodes, edges, setSavedState]);
 
   const discardChanges = useCallback(() => {
-    return savedState; // Return saved state to restore
-  }, [savedState]);
-
-  const reset = useCallback(() => {
-    setSavedState({ nodes, edges });
-  }, [nodes, edges]);
+    return { nodes: savedNodes, edges: savedEdges };
+  }, [savedNodes, savedEdges]);
 
   return {
     hasUnsavedChanges,
-    saveChanges,
     discardChanges,
-    reset,
   };
 }

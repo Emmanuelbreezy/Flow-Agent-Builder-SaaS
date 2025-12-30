@@ -13,11 +13,11 @@ interface EndSettingsProps {
 
 export const EndSettings = ({ id, data }: EndSettingsProps) => {
   const { updateNodeData } = useReactFlow();
-  const outputValue = (data.outputValue as string) || "";
+  const value = (data.value as string) || "";
 
   const handleUpdateOutput = (value: string) => {
     updateNodeData(id, {
-      outputValue: value,
+      value: value,
     });
   };
 
@@ -29,7 +29,7 @@ export const EndSettings = ({ id, data }: EndSettingsProps) => {
       <Textarea
         id="output"
         rows={4}
-        value={outputValue}
+        value={value}
         onChange={(e) => handleUpdateOutput(e.target.value)}
         placeholder="Define the output variable or message"
         className="bg-muted/50 resize-none"

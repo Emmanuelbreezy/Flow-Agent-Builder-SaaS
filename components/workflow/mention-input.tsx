@@ -5,7 +5,7 @@ import * as React from "react";
 import { MentionsInput, Mention } from "react-mentions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BracesIcon, Variable } from "lucide-react";
+import { BracesIcon } from "lucide-react";
 import { useWorkflow } from "@/context/workflow-context";
 
 import {
@@ -51,10 +51,11 @@ export function MentionInputComponent({
     const result: Suggestion[] = [];
     availableNodes.forEach((node) => {
       const nodeName = node.name.toLowerCase().replace(/ /g, "_");
-      // Loop through outputSchema from node data
-      node.outputSchema.forEach((output: string) => {
+
+      // Loop through outputs from node data
+      node.outputs?.forEach((output: string) => {
         result.push({
-          id: `${nodeName}.${output}`,
+          id: `${node.nodeId}.${output}`,
           display: `${nodeName}.${output}`,
           //id: `${node.id}.${output}`
         });
@@ -63,29 +64,6 @@ export function MentionInputComponent({
 
     return result;
   }, [nodeId, getVariablesForNode]);
-
-  // Generate suggestions from upstream nodes if nodeId provided
-  // const suggestions = React.useMemo(() => {
-  //   if (!nodeId) return customSuggestions;
-
-  //   const filteredNodes = getVariablesForNode(nodeId);
-  //   const result: Suggestion[] = [];
-
-  //   filteredNodes.forEach((node) => {
-  //     const nodeData = nodes.find((n) => n.id === node.id);
-  //     if (!nodeData) return;
-  //     const config = NODE_CONFIG[nodeData.type as NodeType];
-  //     config?.outputs().forEach((output: any) => {
-  //       result.push({
-  //         id: `${node.id}.${output.id}`,
-  //         display: `${node.name}.${output.id}`,
-  //         description: output.type,
-  //       });
-  //     });
-  //   });
-
-  //   return result;
-  // }, [nodeId, nodes, getVariablesForNode, customSuggestions]);
 
   const handleTriggerClick = () => {
     onChange(value + "{{");
