@@ -4,6 +4,8 @@ import { getNodeExecutor, NodeType } from "./node-config";
 import { ExecutorContextType } from "@/types/workflow";
 import { NodeTypeEnum } from "@/lib/workflow/node-config";
 import { Edge, Node } from "@xyflow/react";
+import { UIMessage } from "ai";
+import { WorkflowContext } from "@upstash/workflow";
 
 /**
  * Performs topological sort on workflow nodes
@@ -75,8 +77,10 @@ export async function executeWorkflow(
   nodes: Node[],
   edges: Edge[],
   userInput: string,
+  messages: UIMessage[],
   channel: any,
-  sessionId: string
+  chatId: string,
+  workflowContext: WorkflowContext
 ) {
   const startNode = nodes.find((n) => n.type === NodeTypeEnum.START);
   if (!startNode) throw new Error("No START node");
@@ -97,15 +101,15 @@ export async function executeWorkflow(
     outputs: {
       [startNode.id]: { input: userInput },
     },
-    history: [],
-    sessionId,
+    history: messages || [],
+    chatId,
     channel,
+    workflowContext,
   };
 
   try {
     // Get Sorted Nodes in Execution Order
     const sortedNodes = topologicalSort(nodes, edges);
-
     console.log(
       "Execution order:",
       sortedNodes.map((n) => `${n.id} (${n.type})`).join(" → ")

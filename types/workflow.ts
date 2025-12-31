@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { WorkflowContext } from "@upstash/workflow";
+import { UIMessage } from "ai";
 
 export type ExecutorContextType = {
   outputs: Record<string, any>;
+  history: UIMessage[];
+  chatId: string;
   channel: any; // Realtime instance - just use any to avoid type recursion
-  history: Array<{ role: string; content: string }>;
-  sessionId: string;
+  workflowContext: WorkflowContext;
 };
 
 export type ExecutorResultType = {

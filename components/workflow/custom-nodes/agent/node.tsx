@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Brain } from "lucide-react";
+import { MousePointer2 } from "lucide-react";
 import { NodeProps, useReactFlow } from "@xyflow/react";
 import WorkflowNode from "../../workflow-node";
 import { AgentSettings } from "./settings";
@@ -20,7 +20,7 @@ export const AgentNode = ({ data, selected, id }: NodeProps) => {
       <WorkflowNode
         label={name}
         subText="Agent"
-        icon={Brain}
+        icon={MousePointer2}
         selected={selected}
         handles={{ target: true, source: true }}
         color={bgcolor}

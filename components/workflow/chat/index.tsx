@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,128 +13,138 @@ import { useWorkflow } from "@/context/workflow-context";
 import { ChatPanel } from "./chat-panel";
 import type { UIMessage } from "@ai-sdk/react";
 
-const ChatView = () => {
+const ChatView = ({ workflowId }: { workflowId: string }) => {
   const { view, setView } = useWorkflow();
   const isPreview = view === "preview";
+  const [messages, setMessages] = useState<UIMessage[]>([]);
+
+  // Move states here
+  const [chatId, setChatId] = useState<string | null>(() =>
+    crypto.randomUUID()
+  );
 
   const handlePreviewClose = () => {
     setView("edit");
   };
 
-  // Dummy UIMessage for testing
-  const dummyMessages: UIMessage[] = [
-    {
-      id: "msg-1",
-      role: "user",
-      parts: [
-        {
-          type: "text",
-          text: "i want to return the item",
-        },
-      ],
-    },
+  const handleNewChat = () => {
+    setChatId(crypto.randomUUID());
+  };
 
-    {
-      id: "msg-2",
-      role: "assistant",
-      parts: [
-        {
-          type: "data-workflow-start",
-          data: { text: "Starting workflow execution..." },
-        },
-        {
-          type: "data-workflow-node",
-          data: {
-            id: "start",
-            nodeType: "start",
-            nodeName: "Start",
-            status: "complete",
-          },
-        },
-        {
-          type: "data-workflow-node",
-          data: {
-            id: "agent-1",
-            nodeType: "agent",
-            nodeName: "Classification agent",
-            status: "complete",
-            output: { classification: "return_item" },
-          },
-        },
-        {
-          type: "data-workflow-node",
-          data: {
-            id: "condition-1",
-            nodeType: "if_else",
-            nodeName: "Condition",
-            status: "complete",
-            output: "",
-          },
-        },
-        {
-          type: "data-workflow-node",
-          data: {
-            id: "agent-2",
-            nodeType: "agent",
-            nodeName: "Agent",
-            status: "loading",
-          },
-        },
-        {
-          type: "data-workflow-node",
-          data: {
-            id: "agent-2",
-            nodeType: "agent",
-            nodeName: "Agent",
-            status: "complete",
-            output:
-              "We can help you with that! We also offer a replacement device with free shipping if you're interested. Would you like to proceed with the return or get a replacement?",
-          },
-        },
-        {
-          type: "data-workflow-node",
-          data: {
-            id: "user-approval-1",
-            nodeType: "user_approval",
-            nodeName: "User Approval",
-            status: "loading",
-            output: {
-              message: "Do you want to proceed with the return?",
-            },
-            state: "approval-requested",
-          },
-        },
-        {
-          type: "data-workflow-node",
-          data: {
-            id: "user-approval-1",
-            nodeType: "user_approval",
-            nodeName: "User Approval",
-            status: "complete",
-            output: {
-              message: "Do you want to proceed with the return?",
-              response: "Approved",
-            },
-            state: "approval-responded",
-            approval: {
-              id: "user-approval-1",
-              approved: true,
-            },
-          },
-        },
-        {
-          type: "data-workflow-node",
-          data: {
-            id: "end-1",
-            nodeType: "end",
-            nodeName: "End",
-            status: "complete",
-            output: "How can I assist you further?",
-          },
-        },
-      ],
-    },
-  ];
+  // Dummy UIMessage for testing
+  // const dummyMessages: UIMessage[] = [
+  //   {
+  //     id: "msg-1",
+  //     role: "user",
+  //     parts: [
+  //       {
+  //         type: "text",
+  //         text: "i want to return the item",
+  //       },
+  //     ],
+  //   },
+
+  //   {
+  //     id: "msg-2",
+  //     role: "assistant",
+  //     parts: [
+  //       {
+  //         type: "data-workflow-start",
+  //         data: { text: "Starting workflow execution..." },
+  //       },
+  //       {
+  //         type: "data-workflow-node",
+  //         data: {
+  //           id: "start",
+  //           nodeType: "start",
+  //           nodeName: "Start",
+  //           status: "complete",
+  //         },
+  //       },
+  //       {
+  //         type: "data-workflow-node",
+  //         data: {
+  //           id: "agent-1",
+  //           nodeType: "agent",
+  //           nodeName: "Classification agent",
+  //           status: "complete",
+  //           output: { classification: "return_item" },
+  //         },
+  //       },
+  //       {
+  //         type: "data-workflow-node",
+  //         data: {
+  //           id: "condition-1",
+  //           nodeType: "if_else",
+  //           nodeName: "Condition",
+  //           status: "complete",
+  //           output: "",
+  //         },
+  //       },
+  //       {
+  //         type: "data-workflow-node",
+  //         data: {
+  //           id: "agent-2",
+  //           nodeType: "agent",
+  //           nodeName: "Agent",
+  //           status: "loading",
+  //         },
+  //       },
+  //       {
+  //         type: "data-workflow-node",
+  //         data: {
+  //           id: "agent-2",
+  //           nodeType: "agent",
+  //           nodeName: "Agent",
+  //           status: "complete",
+  //           output:
+  //             "We can help you with that! We also offer a replacement device with free shipping if you're interested. Would you like to proceed with the return or get a replacement?",
+  //         },
+  //       },
+  //       {
+  //         type: "data-workflow-node",
+  //         data: {
+  //           id: "user-approval-1",
+  //           nodeType: "user_approval",
+  //           nodeName: "User Approval",
+  //           status: "loading",
+  //           output: {
+  //             message: "Do you want to proceed with the return?",
+  //           },
+  //           state: "approval-requested",
+  //         },
+  //       },
+  //       {
+  //         type: "data-workflow-node",
+  //         data: {
+  //           id: "user-approval-1",
+  //           nodeType: "user_approval",
+  //           nodeName: "User Approval",
+  //           status: "complete",
+  //           output: {
+  //             message: "Do you want to proceed with the return?",
+  //             response: "Approved",
+  //           },
+  //           state: "approval-responded",
+  //           approval: {
+  //             id: "user-approval-1",
+  //             approved: true,
+  //           },
+  //         },
+  //       },
+  //       {
+  //         type: "data-workflow-node",
+  //         data: {
+  //           id: "end-1",
+  //           nodeType: "end",
+  //           nodeName: "End",
+  //           status: "complete",
+  //           output: "How can I assist you further?",
+  //         },
+  //       },
+  //     ],
+  //   },
+  // ];
 
   return (
     <>
@@ -156,6 +166,7 @@ const ChatView = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 gap-2 text-muted-foreground"
+                onClick={handleNewChat}
               >
                 New chat <Plus size={14} />
               </Button>
@@ -163,7 +174,11 @@ const ChatView = () => {
           </SheetHeader>
 
           <div className="h-full">
-            <ChatPanel initialMessages={dummyMessages} />
+            <ChatPanel
+              workflowId={workflowId}
+              chatId={chatId}
+              initialMessages={[]}
+            />
           </div>
         </SheetContent>
       </Sheet>

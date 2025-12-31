@@ -107,7 +107,8 @@ export function MentionInputComponent({
     <div className={wrapperClass}>
       <MentionsInput
         value={value}
-        onChange={(_, newValue) => onChange(newValue)}
+        // onChange={(_, newValue) => onChange(newValue)}
+        onChange={(event) => onChange(event.target.value)}
         singleLine={!multiline}
         placeholder={placeholder}
         allowSuggestionsAboveCursor={false}

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import { ArrowUp, Sparkles } from "lucide-react";
 import { UIMessage, useChat } from "@ai-sdk/react";
 import {
@@ -38,38 +39,62 @@ import {
   ConfirmationRejected,
 } from "@/components/ai-elements/confirmation";
 
-import { createResumableTransport } from "@/lib/ai/transport";
 import { getNodeConfig, NodeType } from "@/lib/workflow/node-config";
 import { Spinner } from "@/components/ui/spinner";
 import { nanoid } from "nanoid";
+import { createWorkflowTransport } from "@/lib/ai/transport";
 
 interface ChatPanelProps {
-  initialMessages: UIMessage[];
+  workflowId: string;
+  chatId: string | null;
+  initialMessages?: UIMessage[];
 }
 
-export const ChatPanel = ({ initialMessages = [] }: ChatPanelProps) => {
-  const [text, setText] = useState<string>("");
-  const [messageId, setMessageId] = useState<string | null>(null);
-  const [chatId, setChatId] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+export const ChatPanel = ({
+  workflowId,
+  chatId,
+  initialMessages = [],
+}: ChatPanelProps) => {
+  const [input, setInput] = useState<string>("");
 
   const { messages, sendMessage, status } = useChat<UIMessage>({
     id: chatId ?? undefined,
     messages: initialMessages,
-    transport: createResumableTransport({
-      messageId,
-      setChatId,
-      setMessageId,
+    transport: createWorkflowTransport({
+      workflowId,
     }),
   });
 
+  console.log(messages, "messages");
+
+  const isLoading =
+    status === "submitted" ||
+    (status === "streaming" &&
+      !Boolean(
+        messages[messages.length - 1]?.parts.some(
+          (part) => part.type === "text" && Boolean(part.text)
+        )
+      ));
+
   const handleSubmit = async (message: PromptInputMessage) => {
     if (!message.text?.trim()) return;
-    setText("");
+    sendMessage({ text: message.text });
+    setInput("");
+  };
+
+  const handleApprovalNotify = async (nodeId: string, approved: boolean) => {
+    try {
+      await axios.post("/api/notify", {
+        eventId: `approval-${nodeId}-${Date.now()}`,
+        eventData: { approved },
+      });
+    } catch (error) {
+      console.error("Failed to notify approval:", error);
+    }
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col justify-between  h-full">
       {/* Messages */}
       {messages.length > 0 ? (
         <Conversation className="flex-1">
@@ -110,30 +135,15 @@ export const ChatPanel = ({ initialMessages = [] }: ChatPanelProps) => {
                           data.nodeType === "user_approval" &&
                           data.state === "approval-requested"
                         ) {
-                          console.log(data);
                           return (
                             <UserApproval
                               key={`${message.id}-node-${i}`}
                               data={data}
                               onApprove={(nodeId) => {
-                                // sendMessage({
-                                //   role: "user",
-                                //   content: JSON.stringify({
-                                //     type: "approval",
-                                //     nodeId,
-                                //     approved: true,
-                                //   }),
-                                // });
+                                handleApprovalNotify(nodeId, true);
                               }}
                               onReject={(nodeId) => {
-                                // sendMessage({
-                                //   role: "user",
-                                //   content: JSON.stringify({
-                                //     type: "approval",
-                                //     nodeId,
-                                //     approved: false,
-                                //   }),
-                                // });
+                                handleApprovalNotify(nodeId, false);
                               }}
                             />
                           );
@@ -154,11 +164,20 @@ export const ChatPanel = ({ initialMessages = [] }: ChatPanelProps) => {
                 </MessageContent>
               </Message>
             ))}
+
+            {isLoading ? (
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 font-mono">
+                  <Spinner className="size-3.5" />
+                  Start
+                </div>
+              </div>
+            ) : null}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
       ) : (
-        <div className="h-full flex flex-col items-center justify-center">
+        <div className="flex-[1.3] flex flex-col items-center justify-center ">
           <Empty className="border-0">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -172,21 +191,21 @@ export const ChatPanel = ({ initialMessages = [] }: ChatPanelProps) => {
           </Empty>
         </div>
       )}
+
       {/* Input */}
       <div className="shrink-0 flex-[0.4] w-full px-4 pt-2  bg-background">
         <PromptInput className="shadow-md rounded-xl!" onSubmit={handleSubmit}>
           <PromptInputBody>
             <PromptInputTextarea
-              onChange={(e) => setText(e.target.value)}
-              ref={textareaRef}
-              value={text}
+              onChange={(e) => setInput(e.target.value)}
+              value={input}
               placeholder="Send a message..."
               className="pt-3"
             />
           </PromptInputBody>
           <PromptInputFooter className="flex justify-end">
             <PromptInputSubmit
-              disabled={!text.trim() || !status}
+              disabled={!input.trim() || !status}
               className="h-9! w-9! p-0! rounded-xl! bg-foreground! text-background!"
             >
               <ArrowUp size={18} />
@@ -267,6 +286,25 @@ export const UserApproval = ({
   onApprove,
   onReject,
 }: UserApprovalProps) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const handleApprove = async () => {
+    setIsLoading(true);
+    try {
+      await onApprove(data.id);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    setIsLoading(true);
+    try {
+      await onReject(data.id);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <>
       <Confirmation
@@ -285,16 +323,20 @@ export const UserApproval = ({
             </p>
             <ConfirmationActions>
               <ConfirmationAction
-                onClick={() => onApprove(data.id)}
                 variant="default"
+                disabled={isLoading}
+                onClick={handleApprove}
               >
                 Approve
+                {isLoading && <Spinner />}
               </ConfirmationAction>
               <ConfirmationAction
-                onClick={() => onReject(data.id)}
                 variant="outline"
+                disabled={isLoading}
+                onClick={handleReject}
               >
                 Reject
+                {isLoading && <Spinner />}
               </ConfirmationAction>
             </ConfirmationActions>
           </div>
