@@ -8,9 +8,6 @@ export async function executeEnd(
   const text = node.data.value as string;
 
   return {
-    output: {
-      text,
-      completed: true,
-    },
+    output: text,
   };
 }

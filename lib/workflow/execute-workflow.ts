@@ -87,7 +87,7 @@ export async function executeWorkflow(
       data: {
         id: startNode.id,
         nodeType: startNode.type,
-        text: `Starting workflow execution...`,
+        message: `Starting workflow execution...`,
       },
       transient: true, // This chunk is transient and won't be stored in history
     },
@@ -126,7 +126,7 @@ export async function executeWorkflow(
       try {
         const nodeType = node.type as NodeType;
         const executor = getNodeExecutor(nodeType);
-
+        // Emit loading state
         await channel.emit("workflow.chunk", {
           chunk: {
             type: "data-workflow-node",
@@ -159,7 +159,7 @@ export async function executeWorkflow(
               id: node.id,
               nodeType: node.type,
               nodeName: node.data?.name,
-              output: result.output,
+              output: result.output?.text || result.output,
               status: "complete",
             },
           },
@@ -171,10 +171,7 @@ export async function executeWorkflow(
           await channel.emit("workflow.chunk", {
             chunk: {
               type: "data-workflow-complete",
-              data: {
-                output: result.output.finalOutput || result.output,
-                executedNodes: Array.from(executedNodes),
-              },
+              data: { message: "Workflow completed successfully." },
               transient: true,
             },
           });
@@ -185,7 +182,6 @@ export async function executeWorkflow(
 
           return {
             success: true,
-            output: result.output.finalOutput || result.output,
             outputs: context.outputs,
             executedNodes: Array.from(executedNodes),
           };
@@ -193,6 +189,30 @@ export async function executeWorkflow(
 
         // Determine next nodes to execute
         const nextNodeIds = getNextNodes(node.id, edges, context);
+
+        // If no next nodes and not END node, workflow stops (disconnected)
+        if (nextNodeIds.length === 0) {
+          await channel.emit("workflow.chunk", {
+            chunk: {
+              type: "data-workflow-error",
+              data: {
+                message: `Node "${node.data?.name}" has no connections. Workflow stopped.`,
+              },
+              transient: true,
+            },
+          });
+
+          await channel.emit("workflow.chunk", {
+            chunk: { type: "finish", reason: "stop" },
+          });
+
+          return {
+            success: false,
+            output: "Workflow stopped: disconnected nodes",
+          };
+        }
+
+        // Add next nodes to execution queue
         nextNodeIds.forEach((id) => nodesToExecute.add(id));
 
         //
@@ -232,3 +252,206 @@ export async function executeWorkflow(
     throw error;
   }
 }
+
+//
+//
+//
+//
+//
+//
+///
+//
+//
+// export async function executeWorkflow2(
+//   nodes: Node[],
+//   edges: Edge[],
+//   userInput: string,
+//   channel: any,
+//   sessionId: string
+// ) {
+//   const startNode = nodes.find((n) => n.type === NodeTypeEnum.START);
+//   if (!startNode) throw new Error("No START node");
+
+//   // Initialize workflow execution
+//   await channel.emit("workflow.chunk", {
+//     chunk: {
+//       type: "data-workflow-start",
+//       data: {
+//         id: startNode.id,
+//         nodeType: startNode.type,
+//         message: `Starting workflow execution...`,
+//       },
+//       transient: true, // This chunk is transient and won't be stored in history
+//     },
+//   });
+
+//   const context: ExecutorContextType = {
+//     outputs: {
+//       [startNode.id]: { input: userInput },
+//     },
+//     history: [],
+//     sessionId,
+//     channel,
+//   };
+
+//   try {
+//     // Get Sorted Nodes in Execution Order
+//     const sortedNodes = topologicalSort(nodes, edges);
+
+//     console.log(
+//       "Execution order:",
+//       sortedNodes.map((n) => `${n.id} (${n.type})`).join(" → ")
+//     );
+
+//     // Track which nodes have been executed
+//     const executedNodes = new Set<string>();
+//     const nodesToExecute = new Set<string>([startNode.id]);
+
+//     // Execute nodes in topological order
+//     for (const node of sortedNodes) {
+//       // Skip if node shouldn't be executed yet (conditional branching or disconnected)
+//       if (!nodesToExecute.has(node.id)) {
+//         console.log(`Skipping ${node.id} - not in execution path`);
+//         continue;
+//       }
+
+//       try {
+//         const nodeType = node.type as NodeType;
+//         const executor = getNodeExecutor(nodeType);
+
+//         // Emit loading state
+//         await channel.emit("workflow.chunk", {
+//           chunk: {
+//             type: "data-workflow-node",
+//             data: {
+//               id: node.id,
+//               nodeType: node.type,
+//               nodeName: node.data?.name,
+//               status: "loading",
+//             },
+//           },
+//         });
+
+//         // Execute node
+//         const result = await executor(node, context);
+
+//         // Store output in context (for variable replacement)
+//         context.outputs[node.id] = result.output;
+//         executedNodes.add(node.id);
+
+//         console.log(
+//           `Node ${node.id} (${node.type}) executed. Output:`,
+//           result.output
+//         );
+
+//         // Extract displayable output for UI
+//         const displayOutput = result.output?.text || result.output;
+
+//         // Emit node result
+//         await channel.emit("workflow.chunk", {
+//           chunk: {
+//             type: "data-workflow-node",
+//             data: {
+//               id: node.id,
+//               nodeType: node.type,
+//               nodeName: node.data?.name,
+//               output: displayOutput,
+//               status: "complete",
+//             },
+//           },
+//         });
+
+//         // Handle END node
+//         if (node.type === NodeTypeEnum.END) {
+//           console.log("End node reached, finishing workflow.");
+//           await channel.emit("workflow.chunk", {
+//             chunk: {
+//               type: "data-workflow-complete",
+//               data: {
+//                 message: "Workflow completed successfully.",
+//               },
+//               transient: true,
+//             },
+//           });
+
+//           await channel.emit("workflow.chunk", {
+//             chunk: { type: "finish", reason: "stop" },
+//           });
+
+//           return {
+//             success: true,
+//             output: result.output.finalOutput || result.output,
+//             outputs: context.outputs,
+//             executedNodes: Array.from(executedNodes),
+//           };
+//         }
+
+//         // Determine next nodes to execute
+//         const nextNodeIds = getNextNodes(node.id, edges, context);
+
+//         // If no next nodes and not END node, workflow stops (disconnected)
+//         if (nextNodeIds.length === 0 && node.type !== NodeTypeEnum.END) {
+//           console.log(
+//             `Node ${node.id} has no outgoing edges. Workflow ending prematurely.`
+//           );
+
+//           await channel.emit("workflow.chunk", {
+//             chunk: {
+//               type: "data-workflow-warning",
+//               data: {
+//                 message: `Node "${node.data?.name}" has no connections. Workflow stopped.`,
+//               },
+//               transient: true,
+//             },
+//           });
+
+//           await channel.emit("workflow.chunk", {
+//             chunk: { type: "finish", reason: "stop" },
+//           });
+
+//           return {
+//             success: false,
+//             output: "Workflow stopped: disconnected nodes",
+//             outputs: context.outputs,
+//             executedNodes: Array.from(executedNodes),
+//           };
+//         }
+
+//         // Add next nodes to execution queue
+//         nextNodeIds.forEach((id) => nodesToExecute.add(id));
+//       } catch (error) {
+//         console.error(`Error executing node ${node.id}:`, error);
+//         await channel.emit("workflow.error", {
+//           type: "data-workflow-node-error",
+//           data: {
+//             id: node.id,
+//             nodeType: node.type,
+//             error: error instanceof Error ? error.message : String(error),
+//           },
+//         });
+
+//         throw error;
+//       }
+//     }
+
+//     // If no END node was reached
+//     await channel.emit("workflow.chunk", {
+//       chunk: { type: "finish", reason: "stop" },
+//     });
+
+//     return {
+//       success: false,
+//       output: "Workflow completed without END node",
+//       outputs: context.outputs,
+//       executedNodes: Array.from(executedNodes),
+//     };
+//   } catch (error) {
+//     console.error("Workflow execution failed:", error);
+
+//     await channel.emit("workflow.chunk", {
+//       chunk: { type: "finish", reason: "error" },
+//     });
+
+//     throw error;
+//   }
+// }

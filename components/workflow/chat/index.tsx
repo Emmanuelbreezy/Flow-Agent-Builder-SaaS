@@ -151,7 +151,7 @@ const ChatView = () => {
         >
           <SheetHeader className="border-b py-3">
             <div className="flex items-center justify-between">
-              <SheetTitle>Chat Preview</SheetTitle>
+              <SheetTitle>Workflow Preview</SheetTitle>
               <Button
                 variant="ghost"
                 size="sm"

@@ -41,11 +41,13 @@ export async function executeAgent(
   for await (const chunk of result.textStream) {
     fullText += chunk;
     await channel.emit("workflow.chunk", {
-      type: "text",
-      text: chunk,
+      type: "data-workflow-node",
       data: {
         id: node.id,
         nodeType: node.type,
+        nodeName: node.data?.name,
+        status: "loading",
+        output: chunk,
       },
     });
   }
