@@ -84,7 +84,7 @@ export const ChatPanel = ({
 
   const handleApprovalNotify = async (nodeId: string, approved: boolean) => {
     try {
-      await axios.post("/api/notify", {
+      await axios.post(`/api/workflow/${workflowId}/notify`, {
         eventId: `approval-${nodeId}-${Date.now()}`,
         eventData: { approved },
       });
