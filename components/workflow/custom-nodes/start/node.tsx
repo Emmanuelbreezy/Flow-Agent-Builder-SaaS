@@ -6,9 +6,8 @@ import WorkflowNode from "../../workflow-node";
 import { StartSettings } from "./settings";
 
 export const StartNode = (node: NodeProps) => {
-  const { data, selected } = node;
+  const { data, selected, id } = node;
   const bgcolor = (data?.color as string) || "bg-emerald-500";
-  const nodeId = data?.nodeId as string;
 
   return (
     <>
@@ -23,7 +22,7 @@ export const StartNode = (node: NodeProps) => {
         color={bgcolor}
         settingsTitle="Start Node Settings"
         settingsDescription="Configure the workflow starting point"
-        settingComponent={<StartSettings nodeId={nodeId} />}
+        settingComponent={<StartSettings nodeId={id} />}
       />
     </>
   );

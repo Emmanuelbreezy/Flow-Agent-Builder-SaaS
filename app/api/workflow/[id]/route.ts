@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { WorkflowEdgeType, WorkflowNodeType } from "@/types/workflow";
-import { type NodeTypeEnum } from "@/lib/generated/prisma/enums";
+import { Node, Edge } from "@xyflow/react";
 
 export async function GET(
   request: Request,
@@ -16,12 +14,9 @@ export async function GET(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
     const workflow = await prisma.workflow.findUnique({
       where: { id, userId: user.id },
-      include: {
-        nodes: true,
-        edges: true,
-      },
     });
 
     if (!workflow) {
@@ -30,31 +25,16 @@ export async function GET(
         { status: 404 }
       );
     }
-    // Convert Prisma nodes to React Flow Node format
-    const nodes: WorkflowNodeType[] = workflow.nodes.map((node) => ({
-      id: node.id,
-      nodeId: node.nodeId,
-      type: node.type,
-      position: node.position as { x: number; y: number },
-      deletable: node.deletable,
-      data: node.data as Record<string, any>,
-    }));
 
-    // Convert Prisma edges to React Flow Edge format
-    const edges: WorkflowEdgeType[] = workflow.edges.map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-    }));
+    const flowObject = JSON.parse(workflow.flowObject);
 
     return NextResponse.json({
       success: true,
       data: {
         id: workflow.id,
         name: workflow.name,
-        userId: workflow.userId,
-        nodes,
-        edges,
+        status: workflow.status,
+        flowObject: flowObject,
       },
     });
   } catch (error) {
@@ -73,8 +53,8 @@ export async function PUT(
   try {
     const { id } = await params;
     const { nodes, edges } = (await request.json()) as {
-      nodes: WorkflowNodeType[];
-      edges: WorkflowEdgeType[];
+      nodes: Node[];
+      edges: Edge[];
     };
     const session = await getKindeServerSession();
     const user = await session.getUser();
@@ -82,7 +62,6 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify workflow exists and user owns it
     const workflow = await prisma.workflow.findUnique({
       where: { id, userId: user.id },
     });
@@ -94,38 +73,23 @@ export async function PUT(
       );
     }
 
-    // Use transaction to ensure data consistency
-    await prisma.$transaction(async (tx) => {
-      // Delete existing nodes and edges
-      await tx.node.deleteMany({ where: { workflowId: id } });
-      await tx.edge.deleteMany({ where: { workflowId: id } });
-
-      // Create new nodes
-      await tx.node.createMany({
-        data: nodes.map((node) => ({
-          nodeId: node.id,
-          type: node.type as NodeTypeEnum,
-          position: node.position,
-          deletable: node.deletable ?? true,
-          data: node.data as any,
-          workflowId: id,
-        })),
-      });
-
-      // Create new edges
-      await tx.edge.createMany({
-        data: edges.map((edge) => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          workflowId: id,
-        })),
-      });
+    const updatedWorkflow = await prisma.workflow.update({
+      where: { id },
+      data: {
+        flowObject: JSON.stringify({ nodes, edges }),
+      },
     });
+
+    const updatedFlowObject = JSON.parse(updatedWorkflow.flowObject);
 
     return NextResponse.json({
       success: true,
       message: "Workflow updated successfully",
+      data: {
+        id: updatedWorkflow.id,
+        name: updatedWorkflow.name,
+        flowObject: updatedFlowObject,
+      },
     });
   } catch (error) {
     console.error("Error occurred:", error);

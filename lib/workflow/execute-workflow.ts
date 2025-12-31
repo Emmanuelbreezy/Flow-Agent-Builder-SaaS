@@ -1,22 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import TopologicalSort from "topological-sort";
 import { getNodeExecutor, NodeType } from "./node-config";
-import {
-  ExecutorContextType,
-  WorkflowEdgeType,
-  WorkflowNodeType,
-} from "@/types/workflow";
-import { NodeTypeEnum } from "../generated/prisma/enums";
+import { ExecutorContextType } from "@/types/workflow";
+import { NodeTypeEnum } from "@/lib/workflow/node-config";
+import { Edge, Node } from "@xyflow/react";
 
 /**
  * Performs topological sort on workflow nodes
  *  using topological-sort library
  * Returns nodes in execution order based on their dependencies
  */
-function topologicalSort(
-  nodes: WorkflowNodeType[],
-  edges: WorkflowEdgeType[]
-): WorkflowNodeType[] {
+function topologicalSort(nodes: Node[], edges: Edge[]) {
   const ts = new TopologicalSort(new Map());
 
   // Add all nodes to the sort
@@ -50,7 +44,7 @@ function topologicalSort(
  */
 function getNextNodes(
   currentNodeId: string,
-  edges: WorkflowEdgeType[],
+  edges: Edge[],
   context: ExecutorContextType
 ): string[] {
   // Get all outgoing edges for the current node
@@ -78,8 +72,8 @@ function getNextNodes(
 }
 
 export async function executeWorkflow(
-  nodes: WorkflowNodeType[],
-  edges: WorkflowEdgeType[],
+  nodes: Node[],
+  edges: Edge[],
   userInput: string,
   channel: any,
   sessionId: string
@@ -92,7 +86,6 @@ export async function executeWorkflow(
       type: "data-workflow-start",
       data: {
         id: startNode.id,
-        nodeId: startNode.nodeId,
         nodeType: startNode.type,
         text: `Starting workflow execution...`,
       },
@@ -101,7 +94,7 @@ export async function executeWorkflow(
 
   const context: ExecutorContextType = {
     outputs: {
-      [startNode.nodeId]: { input: userInput },
+      [startNode.id]: { input: userInput },
     },
     history: [],
     sessionId,
@@ -138,7 +131,6 @@ export async function executeWorkflow(
             type: "data-workflow-node-start",
             data: {
               id: node.id,
-              nodeId: node.nodeId,
               nodeType: node.type,
               nodeName: node.data?.name || node.type,
             },
@@ -149,11 +141,11 @@ export async function executeWorkflow(
         const result = await executor(node, context);
 
         // Store output
-        context.outputs[node.nodeId] = result.output;
+        context.outputs[node.id] = result.output;
         executedNodes.add(node.id);
 
         console.log(
-          `Node ${node.nodeId} (${node.type}) executed. Output:`,
+          `Node ${node.id} (${node.type}) executed. Output:`,
           result.output
         );
 
@@ -164,7 +156,6 @@ export async function executeWorkflow(
               type: "data-workflow-node-complete",
               data: {
                 id: node.id,
-                nodeId: node.nodeId,
                 nodeType: node.type,
                 output: result.output,
               },
@@ -206,7 +197,6 @@ export async function executeWorkflow(
           type: "data-workflow-node-error",
           data: {
             id: node.id,
-            nodeId: node.nodeId,
             nodeType: node.type,
             error: error instanceof Error ? error.message : String(error),
           },
@@ -225,7 +215,6 @@ export async function executeWorkflow(
       success: true,
       output: "Workflow completed without END node",
       outputs: context.outputs,
-      executedNodes: Array.from(executedNodes),
     };
   } catch (error) {
     console.error("Workflow execution failed:", error);

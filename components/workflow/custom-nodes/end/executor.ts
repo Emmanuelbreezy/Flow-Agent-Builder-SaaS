@@ -1,10 +1,10 @@
 import { Node } from "@xyflow/react";
-import { ExecutorContext, ExecutorResult } from "@/lib/workflow/type";
+import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
 
 export async function executeEnd(
   node: Node,
-  context: ExecutorContext
-): Promise<ExecutorResult> {
+  context: ExecutorContextType
+): Promise<ExecutorResultType> {
   const text = node.data.value as string;
 
   return {

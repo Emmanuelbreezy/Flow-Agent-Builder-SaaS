@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
+import { Panel } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import { NODE_CONFIG } from "@/lib/workflow/node-config";
-import { Panel } from "@xyflow/react";
-import { NodeTypeEnum } from "@/lib/generated/prisma/enums";
+import { NodeTypeEnum } from "@/lib/workflow/node-config";
 
 const NODE_LIST = [
   {

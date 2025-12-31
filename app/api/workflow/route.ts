@@ -1,8 +1,7 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { createNode } from "@/lib/workflow/node-config";
-import { NodeTypeEnum } from "@/lib/generated/prisma/enums";
+import { createNode, NodeTypeEnum } from "@/lib/workflow/node-config";
 
 export async function GET() {
   try {
@@ -13,8 +12,14 @@ export async function GET() {
     }
 
     const workflows = await prisma.workflow.findMany({
-      where: {
-        userId: user.id,
+      where: { userId: user.id },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -55,22 +60,25 @@ export async function POST(request: Request) {
       type: NodeTypeEnum.START,
     });
 
+    const flowObject = {
+      nodes: [
+        {
+          id: startNode.id,
+          type: startNode.type,
+          position: startNode.position,
+          data: startNode.data,
+          deletable: false,
+        },
+      ],
+      edges: [],
+    };
+
     const workflow = await prisma.workflow.create({
       data: {
         userId,
         name,
         description: description || "",
-        nodes: {
-          create: [
-            {
-              nodeId: startNode.id, // Save the generated id as nodeId
-              type: startNode.type,
-              position: startNode.position,
-              data: startNode.data,
-              deletable: false,
-            },
-          ],
-        },
+        flowObject: JSON.stringify(flowObject),
       },
     });
 
@@ -82,9 +90,7 @@ export async function POST(request: Request) {
     console.error("Error occurred:", error);
     return NextResponse.json(
       {
-        error: `Failed to create workflow: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        error: `Failed to create workflow`,
       },
       { status: 500 }
     );

@@ -1,9 +1,9 @@
-import { ExecutorContext, ExecutorResult } from "@/lib/workflow/type";
+import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
 
 export async function executeStart(
   node: Node,
-  context: ExecutorContext
-): Promise<ExecutorResult> {
+  context: ExecutorContextType
+): Promise<ExecutorResultType> {
   // Start node just passes through the input
   return {
     output: context.outputs.start.input,

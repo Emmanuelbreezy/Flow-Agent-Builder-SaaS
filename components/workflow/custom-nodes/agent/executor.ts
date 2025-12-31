@@ -44,7 +44,7 @@ export async function executeAgent(
       type: "text-delta",
       textDelta: chunk,
       data: {
-        nodeId: node.id,
+        id: node.id,
         nodeType: node.type,
       },
     });

@@ -15,17 +15,17 @@ import { executeHttp } from "@/components/workflow/custom-nodes/http/executor";
 import { executeIfElse } from "@/components/workflow/custom-nodes/if-else/executor";
 import { executeUserApproval } from "@/components/workflow/custom-nodes/user-approval/executor";
 import { executeEnd } from "@/components/workflow/custom-nodes/end/executor";
-import { NodeTypeEnum } from "../generated/prisma/enums";
+import { MODELS } from "./constants";
 
-// export const NODE_TYPES = {
-//   START: NodeTypeEnum.START,
-//   AGENT: NodeTypeEnum.AGENT,
-//   USER_APPROVAL: NodeTypeEnum.USER_APPROVAL,
-//   IF_ELSE: NodeTypeEnum.IF_ELSE,
-//   END: NodeTypeEnum.END,
-//   HTTP: NodeTypeEnum.HTTP,
-//   COMMENT: NodeTypeEnum.COMMENT,
-// } as const;
+export const NodeTypeEnum = {
+  START: "start",
+  AGENT: "agent",
+  USER_APPROVAL: "user_approval",
+  IF_ELSE: "if_else",
+  END: "end",
+  HTTP: "http",
+  COMMENT: "comment",
+} as const;
 
 export type NodeType = (typeof NodeTypeEnum)[keyof typeof NodeTypeEnum];
 
@@ -69,7 +69,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
       name: "Agent",
       instructions: "",
       includeChatHistory: true,
-      model: "gpt-4-mini",
+      model: MODELS[0].value,
       tools: [],
       outputFormat: "text", // ← text or json
       responseSchema: null, // ← null until user adds schema
@@ -164,12 +164,10 @@ export function createNode({
   const id = generateId(type);
   return {
     id,
-    nodeId: id,
     type,
     position,
     deletable: type === NodeTypeEnum.START ? false : true,
     data: {
-      nodeId: id,
       name: config.label,
       ...config.inputs,
       outputs: config.outputs,

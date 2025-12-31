@@ -2,10 +2,15 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { useEdgesState, useNodesState } from "@xyflow/react";
+import {
+  Node,
+  Edge,
+  useEdgesState,
+  useNodesState,
+  useViewport,
+} from "@xyflow/react";
 
 import { ToolModeType, TOOL_MODE_ENUM } from "@/lib/workflow/constants";
-import { WorkflowEdgeType, WorkflowNodeType } from "@/types/workflow";
 
 export type WorkflowView = "edit" | "preview";
 
@@ -14,14 +19,14 @@ interface WorkflowContextType {
   setView: (view: WorkflowView) => void;
   toolMode: ToolModeType;
   setToolMode: (mode: ToolModeType) => void;
-  nodes: WorkflowNodeType[];
-  edges: WorkflowEdgeType[];
-  setNodes: React.Dispatch<React.SetStateAction<WorkflowNodeType[]>>;
-  setEdges: React.Dispatch<React.SetStateAction<WorkflowEdgeType[]>>;
+  nodes: Node[];
+  edges: Edge[];
+  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
   onNodesChange: (changes: any) => void;
   onEdgesChange: (changes: any) => void;
   getVariablesForNode: (
-    id: string
+    nodeId: string
   ) => { nodeId: string; name: string; outputs?: any }[];
 }
 
@@ -37,17 +42,13 @@ export function WorkflowProvider({
 }: {
   children: ReactNode;
   workflowId: string;
-  initialNodes: WorkflowNodeType[];
-  initialEdges: WorkflowEdgeType[];
+  initialNodes: Node[];
+  initialEdges: Edge[];
 }) {
   const [view, setView] = useState<WorkflowView>("edit");
   const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.HAND);
-  const [nodes, setNodes, onNodesChange] = useNodesState(
-    [] as WorkflowNodeType[]
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState(
-    [] as WorkflowEdgeType[]
-  );
+  const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[]);
 
   const [prevWorkflowId, setPrevWorkflowId] = useState(workflowId);
   if (workflowId !== prevWorkflowId) {
@@ -73,7 +74,7 @@ export function WorkflowProvider({
   // ];
 
   // Get upstream node IDs
-  const getUpstreamNodes = (id: string): Set<string> => {
+  const getUpstreamNodes = (nodeId: string): Set<string> => {
     const upstream = new Set<string>();
     const addToSet = (_id: string) => {
       edges
@@ -83,17 +84,17 @@ export function WorkflowProvider({
           addToSet(e.source);
         });
     };
-    addToSet(id);
+    addToSet(nodeId);
     return upstream;
   };
 
   // Get variables for a node (only from upstream)
-  const getVariablesForNode = (id: string) => {
-    const upstreamIds = getUpstreamNodes(id);
+  const getVariablesForNode = (nodeId: string) => {
+    const upstreamIds = getUpstreamNodes(nodeId);
     return nodes
       .filter((n) => upstreamIds.has(n.id))
       .map((n) => ({
-        nodeId: n.nodeId,
+        nodeId: n.id,
         name: String(n.data.name || "Unnamed"),
         outputs: n.data.outputs || [], // ← Get from node data!
       }));

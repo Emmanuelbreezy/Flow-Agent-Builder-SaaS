@@ -48,7 +48,7 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
 
   const name = (data?.name as string) || "Agent";
   const instructions = (data?.instructions as string) || "";
-  const model = (data?.model as string) || "";
+  const model = data?.model as string;
   const tools = (data?.tools as string[]) || [];
   const outputFormat = (data?.outputFormat as string) || "text";
   const responseSchema = (data?.responseSchema as any) || {

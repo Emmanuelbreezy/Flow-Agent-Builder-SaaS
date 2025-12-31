@@ -3,16 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { WorkflowEdgeType, WorkflowNodeType } from "@/types/workflow";
-import { useWorkflowStore } from "@/store/workflow-store";
 
-interface WorkflowWithNodesEdges {
-  id: string;
-  name: string;
-  userId: string;
-  nodes: WorkflowNodeType[];
-  edges: WorkflowEdgeType[];
-}
+import { useWorkflowStore } from "@/store/workflow-store";
+import { Node, Edge } from "@xyflow/react";
 
 export const useCreateWorkflow = () => {
   const router = useRouter();
@@ -54,16 +47,26 @@ export const useGetWorkflows = () => {
   });
 };
 
+interface WorkflowWithFlowObject {
+  id: string;
+  name: string;
+  userId: string;
+  flowObject: {
+    nodes: Node[];
+    edges: Edge[];
+  };
+}
+
 export const useGetWorkflow = (workflowId: string) => {
   const { setSavedState } = useWorkflowStore();
   return useQuery({
     queryKey: ["workflow", workflowId],
     queryFn: async () => {
-      const res = await axios.get<{ data: WorkflowWithNodesEdges }>(
+      const res = await axios.get<{ data: WorkflowWithFlowObject }>(
         `/api/workflow/${workflowId}`
       );
       const result = res.data.data;
-      setSavedState(result.nodes, result.edges);
+      setSavedState(result.flowObject.nodes, result.flowObject.edges);
       return result;
     },
     enabled: !!workflowId,
@@ -71,21 +74,15 @@ export const useGetWorkflow = (workflowId: string) => {
 };
 
 export const useUpdateWorkflow = (workflowId: string) => {
-  const queryClient = useQueryClient();
   const { setSavedState } = useWorkflowStore();
   return useMutation({
-    mutationFn: async (data: {
-      nodes: WorkflowNodeType[];
-      edges: WorkflowEdgeType[];
-    }) =>
+    mutationFn: async (data: { nodes: Node[]; edges: Edge[] }) =>
       await axios
         .put(`/api/workflow/${workflowId}`, data)
         .then((res) => res.data),
-    onSuccess: (data, variables) => {
-      // Update store with new saved state
-      setSavedState(variables.nodes, variables.edges);
-      // Invalidate query to refresh from server
-      queryClient.invalidateQueries({ queryKey: ["workflow", workflowId] });
+    onSuccess: (data) => {
+      const result = data.data;
+      setSavedState(result.flowObject.nodes, result.flowObject.edges);
       toast.success("Workflow saved successfully");
     },
     onError: (error) => {

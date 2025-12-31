@@ -26,11 +26,10 @@ import {
   ActionBarGroup,
   ActionBarItem,
 } from "@/components/ui/action-bar";
-import { Save, X } from "lucide-react";
 import { HttpNode } from "@/components/workflow/custom-nodes/http/node";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { useUpdateWorkflow } from "@/features/use-workflow";
-import { NodeTypeEnum } from "@/lib/generated/prisma/enums";
+import { NodeTypeEnum } from "@/lib/workflow/node-config";
 import { Spinner } from "@/components/ui/spinner";
 
 const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
@@ -44,8 +43,6 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
     onEdgesChange,
   } = useWorkflow();
   const { screenToFlowPosition } = useReactFlow();
-
-  console.log(nodes, "nodes");
 
   // Use unsaved changes hook
   const { hasUnsavedChanges, discardChanges } = useUnsavedChanges({
@@ -188,12 +185,10 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
             onClick={handleDiscardChanges}
             variant="ghost"
           >
-            <X className="size-4" />
             Discard
           </ActionBarItem>
           <ActionBarItem onClick={handleSaveChanges} disabled={isSaving}>
-            <Save className="size-4" />
-            {isSaving ? <Spinner /> : "Save Changes"}
+            {isSaving && <Spinner />} Save Changes
           </ActionBarItem>
         </ActionBarGroup>
       </ActionBar>

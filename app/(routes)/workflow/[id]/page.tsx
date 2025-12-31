@@ -14,8 +14,8 @@ const Page = () => {
 
   const { data: workflow, isPending } = useGetWorkflow(id);
 
-  const nodes = workflow?.nodes || [];
-  const edges = workflow?.edges || [];
+  const nodes = workflow?.flowObject.nodes || [];
+  const edges = workflow?.flowObject.edges || [];
 
   if (!workflow && !isPending) {
     return <div>Workflow not found</div>;

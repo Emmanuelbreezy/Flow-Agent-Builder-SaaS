@@ -1,12 +1,12 @@
+import { Node, Edge } from "@xyflow/react";
 import { create } from "zustand";
-import { WorkflowNodeType, WorkflowEdgeType } from "@/types/workflow";
 
 interface WorkflowStoreState {
   // Saved state from database
-  savedNodes: WorkflowNodeType[];
-  savedEdges: WorkflowEdgeType[];
+  savedNodes: Node[];
+  savedEdges: Edge[];
   // Actions
-  setSavedState: (nodes: WorkflowNodeType[], edges: WorkflowEdgeType[]) => void;
+  setSavedState: (nodes: Node[], edges: Edge[]) => void;
   resetSavedState: () => void;
 }
 

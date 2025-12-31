@@ -8,11 +8,15 @@ export const TOOL_MODE_ENUM = {
 export type ToolModeType = (typeof TOOL_MODE_ENUM)[keyof typeof TOOL_MODE_ENUM];
 
 export const MODELS = [
-  { value: "gpt-4", label: "GPT-4" },
-  { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+  {
+    value: "google/gemini-2.0-flash-lite",
+    label: "Gemini 2.0 Flash Lite (Free)",
+  },
+  { value: "google/gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+  { value: "google/gemini-1.5-flash", label: "Gemini 1.5 Flash" },
+  { value: "google/gemini-1.5-pro", label: "Gemini 1.5 Pro" },
   { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
-  { value: "claude-3-opus", label: "Claude 3 Opus" },
-  { value: "claude-3-sonnet", label: "Claude 3 Sonnet" },
+  { value: "claude-3-haiku", label: "Claude 3 Haiku (Fast)" },
 ];
 
 export const TOOLS = [
