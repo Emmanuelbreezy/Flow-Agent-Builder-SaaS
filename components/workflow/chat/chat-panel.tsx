@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
 import React, { useRef, useState } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Sparkles } from "lucide-react";
 import { UIMessage, useChat } from "@ai-sdk/react";
 import {
   Conversation,
@@ -16,12 +16,9 @@ import {
 import {
   PromptInput,
   PromptInputBody,
-  PromptInputButton,
   PromptInputFooter,
-  PromptInputHeader,
   PromptInputSubmit,
   PromptInputTextarea,
-  PromptInputTools,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import {
@@ -31,10 +28,20 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { Sparkles } from "lucide-react";
+import {
+  Confirmation,
+  ConfirmationTitle,
+  ConfirmationRequest,
+  ConfirmationActions,
+  ConfirmationAction,
+  ConfirmationAccepted,
+  ConfirmationRejected,
+} from "@/components/ai-elements/confirmation";
+
 import { createResumableTransport } from "@/lib/ai/transport";
 import { getNodeConfig, NodeType } from "@/lib/workflow/node-config";
 import { Spinner } from "@/components/ui/spinner";
+import { nanoid } from "nanoid";
 
 interface ChatPanelProps {
   initialMessages: UIMessage[];
@@ -62,93 +69,94 @@ export const ChatPanel = ({ initialMessages = [] }: ChatPanelProps) => {
   };
 
   return (
-    <div className="flex flex-col justify-between h-full">
+    <div className="flex flex-col h-full">
       {/* Messages */}
       {messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto">
-          <Conversation>
-            <ConversationContent className="pb-10">
-              {messages.map((message) => (
-                <Message from={message.role} key={message.id}>
-                  <MessageContent className="text-[15px]!">
-                    {message.parts.map((part, i) => {
-                      switch (part.type) {
-                        case "text": {
-                          return (
-                            <MessageResponse key={`${message.id}-${i}`}>
-                              {part.text}
-                            </MessageResponse>
-                          );
-                        }
-                        case "reasoning": {
-                          return (
-                            <div key={`${message.id}-reason-${i}`}>
-                              <MessageResponse>{part.text}</MessageResponse>
-                            </div>
-                          );
-                        }
-                        case "data-workflow-start": {
-                          return (
-                            <div
-                              key={`${message.id}-workflow-start-${i}`}
-                              className="text-sm text-muted-foreground"
-                            >
-                              🚀 Starting workflow execution...
-                            </div>
-                          );
-                        }
-                        case "data-workflow-node-start": {
-                          const data = part.data as {
-                            nodeType: NodeType;
-                            nodeName: string;
-                          };
-                          const nodeConfig = getNodeConfig(data.nodeType);
-                          if (!nodeConfig) return null;
-
-                          const Icon = nodeConfig.icon;
-
-                          return (
-                            <div
-                              key={`${message.id}-workflow-node-start-${i}`}
-                              className="text-sm text-muted-foreground flex items-center gap-2"
-                            >
-                              <Icon className="h-4 w-4" />
-                              {data.nodeName}
-                            </div>
-                          );
-                        }
-                        case "data-workflow-node-complete": {
-                          const data = part.data as {
-                            nodeType: NodeType;
-                            output: string;
-                          };
-                          const nodeConfig = getNodeConfig(data.nodeType);
-                          if (!nodeConfig) return null;
-
-                          return (
-                            <div
-                              key={`${message.id}-workflow-node-complete-${i}`}
-                              className="text-sm"
-                            >
-                              {data.output && (
-                                <span className="text-xs text-muted-foreground ml-2">
-                                  {data.output}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        }
-                        default:
-                          return null;
+        <Conversation className="flex-1">
+          <ConversationContent>
+            {messages.map((message) => (
+              <Message from={message.role} key={message.id}>
+                <MessageContent className="text-[14.5px]!">
+                  {message.parts.map((part, i) => {
+                    switch (part.type) {
+                      case "text": {
+                        return (
+                          <MessageResponse key={`${message.id}-${i}`}>
+                            {part.text}
+                          </MessageResponse>
+                        );
                       }
-                    })}
-                  </MessageContent>
-                </Message>
-              ))}
-            </ConversationContent>
-            <ConversationScrollButton />
-          </Conversation>
-        </div>
+                      case "data-workflow-start": {
+                        return (
+                          <div
+                            key={`${message.id}-workflow-start-${i}`}
+                            className="text-sm text-muted-foreground"
+                          >
+                            🚀 Starting workflow execution...
+                          </div>
+                        );
+                      }
+
+                      case "data-workflow-node": {
+                        const data = part.data as {
+                          id: string;
+                          nodeType: NodeType;
+                          nodeName: string;
+                          status: "loading" | "complete";
+                          state: "approval-requested" | "approval-responded";
+                          output?: any;
+                        };
+                        if (
+                          data.nodeType === "user_approval" &&
+                          data.state === "approval-requested"
+                        ) {
+                          console.log(data);
+                          return (
+                            <UserApproval
+                              key={`${message.id}-node-${i}`}
+                              data={data}
+                              onApprove={(nodeId) => {
+                                // sendMessage({
+                                //   role: "user",
+                                //   content: JSON.stringify({
+                                //     type: "approval",
+                                //     nodeId,
+                                //     approved: true,
+                                //   }),
+                                // });
+                              }}
+                              onReject={(nodeId) => {
+                                // sendMessage({
+                                //   role: "user",
+                                //   content: JSON.stringify({
+                                //     type: "approval",
+                                //     nodeId,
+                                //     approved: false,
+                                //   }),
+                                // });
+                              }}
+                            />
+                          );
+                        }
+                        return (
+                          <NodeDisplay
+                            key={`${message.id}-workflow-node-${i}`}
+                            data={data}
+                            messageId={message.id}
+                            partIndex={i}
+                          />
+                        );
+                      }
+                      default:
+                        return null;
+                    }
+                  })}
+                </MessageContent>
+              </Message>
+            ))}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
       ) : (
         <div className="h-full flex flex-col items-center justify-center">
           <Empty className="border-0">
@@ -165,15 +173,15 @@ export const ChatPanel = ({ initialMessages = [] }: ChatPanelProps) => {
         </div>
       )}
       {/* Input */}
-      <div className="shrink-0 w-full px-4 py-4 border-t bg-background">
-        <PromptInput className="rounded-xl!" onSubmit={handleSubmit}>
-          <PromptInputBody className="rounded-xl! bg-red-500!">
+      <div className="shrink-0 flex-[0.4] w-full px-4 pt-2  bg-background">
+        <PromptInput className="shadow-md rounded-xl!" onSubmit={handleSubmit}>
+          <PromptInputBody>
             <PromptInputTextarea
               onChange={(e) => setText(e.target.value)}
               ref={textareaRef}
               value={text}
               placeholder="Send a message..."
-              className="pt-5"
+              className="pt-3"
             />
           </PromptInputBody>
           <PromptInputFooter className="flex justify-end">
@@ -187,5 +195,121 @@ export const ChatPanel = ({ initialMessages = [] }: ChatPanelProps) => {
         </PromptInput>
       </div>
     </div>
+  );
+};
+
+interface NodeDisplayProps {
+  data: {
+    id: string;
+    nodeType: NodeType;
+    nodeName: string;
+    status: "loading" | "complete";
+    output?: any;
+  };
+  messageId: string;
+  partIndex: number;
+}
+
+export const NodeDisplay = ({
+  data,
+  messageId,
+  partIndex,
+}: NodeDisplayProps) => {
+  const nodeConfig = getNodeConfig(data.nodeType);
+  if (!nodeConfig) return null;
+  const Icon = nodeConfig.icon;
+  const outputText =
+    typeof data.output === "string"
+      ? data.output
+      : JSON.stringify(data.output, null, 2);
+  return (
+    <div key={`${messageId}-node-${partIndex}`}>
+      {/* Header */}
+      <div
+        className={`px-1 py-2 flex items-center gap-2 ${
+          data.status === "loading" && "animate-pulse"
+        }`}
+      >
+        {data.status === "loading" ? <Spinner /> : <Icon className="h-4 w-4" />}
+        <span className="text-sm font-medium">{data.nodeName}</span>
+      </div>
+      {/* Content */}
+      {data.output && data.status === "complete" && (
+        <div className="px-3 py-2">
+          <MessageResponse>{outputText}</MessageResponse>
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface UserApprovalProps {
+  data: {
+    id: string;
+    nodeName: string;
+    status: "loading" | "complete";
+    output?: {
+      message?: string;
+      response?: string;
+    };
+    state: "approval-requested" | "approval-responded";
+    approval?: {
+      id: string;
+      approved: boolean;
+    };
+  };
+  onApprove: (nodeId: string) => void;
+  onReject: (nodeId: string) => void;
+}
+
+export const UserApproval = ({
+  data,
+  onApprove,
+  onReject,
+}: UserApprovalProps) => {
+  return (
+    <>
+      <Confirmation
+        approval={{ id: nanoid() }}
+        state={data.state}
+        className="my-2"
+      >
+        <ConfirmationTitle className="font-semibold">
+          {data.nodeName}
+        </ConfirmationTitle>
+
+        <ConfirmationRequest>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {data.output?.message || "Do you want to proceed?"}
+            </p>
+            <ConfirmationActions>
+              <ConfirmationAction
+                onClick={() => onApprove(data.id)}
+                variant="default"
+              >
+                Approve
+              </ConfirmationAction>
+              <ConfirmationAction
+                onClick={() => onReject(data.id)}
+                variant="outline"
+              >
+                Reject
+              </ConfirmationAction>
+            </ConfirmationActions>
+          </div>
+        </ConfirmationRequest>
+
+        <ConfirmationAccepted>
+          <div className="text-sm text-green-600">
+            ✓ {data.output?.response || "Approved"}
+          </div>
+        </ConfirmationAccepted>
+
+        <ConfirmationRejected>
+          <div className="text-sm text-red-600">✗ Rejected</div>
+        </ConfirmationRejected>
+      </Confirmation>
+    </>
   );
 };

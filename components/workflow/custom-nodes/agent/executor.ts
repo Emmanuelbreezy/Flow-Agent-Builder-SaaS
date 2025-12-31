@@ -41,8 +41,8 @@ export async function executeAgent(
   for await (const chunk of result.textStream) {
     fullText += chunk;
     await channel.emit("workflow.chunk", {
-      type: "text-delta",
-      textDelta: chunk,
+      type: "text",
+      text: chunk,
       data: {
         id: node.id,
         nodeType: node.type,

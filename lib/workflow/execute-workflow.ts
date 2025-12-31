@@ -89,6 +89,7 @@ export async function executeWorkflow(
         nodeType: startNode.type,
         text: `Starting workflow execution...`,
       },
+      transient: true, // This chunk is transient and won't be stored in history
     },
   });
 
@@ -128,11 +129,12 @@ export async function executeWorkflow(
 
         await channel.emit("workflow.chunk", {
           chunk: {
-            type: "data-workflow-node-start",
+            type: "data-workflow-node",
             data: {
               id: node.id,
               nodeType: node.type,
-              nodeName: node.data?.name || node.type,
+              nodeName: node.data?.name,
+              status: "loading",
             },
           },
         });
@@ -150,18 +152,18 @@ export async function executeWorkflow(
         );
 
         // Emit node result
-        if (node.type !== NodeTypeEnum.END) {
-          await channel.emit("workflow.chunk", {
-            chunk: {
-              type: "data-workflow-node-complete",
-              data: {
-                id: node.id,
-                nodeType: node.type,
-                output: result.output,
-              },
+        await channel.emit("workflow.chunk", {
+          chunk: {
+            type: "data-workflow-node",
+            data: {
+              id: node.id,
+              nodeType: node.type,
+              nodeName: node.data?.name,
+              output: result.output,
+              status: "complete",
             },
-          });
-        }
+          },
+        });
 
         // Handle END node
         if (node.type === NodeTypeEnum.END) {
@@ -173,6 +175,7 @@ export async function executeWorkflow(
                 output: result.output.finalOutput || result.output,
                 executedNodes: Array.from(executedNodes),
               },
+              transient: true,
             },
           });
 
@@ -191,6 +194,9 @@ export async function executeWorkflow(
         // Determine next nodes to execute
         const nextNodeIds = getNextNodes(node.id, edges, context);
         nextNodeIds.forEach((id) => nodesToExecute.add(id));
+
+        //
+        //
       } catch (error) {
         console.error(`Error executing node ${node.id}:`, error);
         await channel.emit("workflow.error", {

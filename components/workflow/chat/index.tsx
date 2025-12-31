@@ -29,87 +29,108 @@ const ChatView = () => {
       parts: [
         {
           type: "text",
-          text: "What is the capital of France?",
+          text: "i want to return the item",
         },
       ],
     },
+
     {
       id: "msg-2",
       role: "assistant",
-      parts: [
-        {
-          type: "text",
-          text: "The capital of France is Paris.",
-        },
-      ],
-    },
-    {
-      id: "msg-3",
-      role: "user",
-
-      parts: [
-        {
-          type: "text",
-          text: "Execute my workflow",
-        },
-      ],
-    },
-    {
-      id: "msg-4",
-      role: "assistant",
-
       parts: [
         {
           type: "data-workflow-start",
           data: { text: "Starting workflow execution..." },
         },
         {
-          type: "text",
-          text: "Workflow started successfully",
+          type: "data-workflow-node",
+          data: {
+            id: "start",
+            nodeType: "start",
+            nodeName: "Start",
+            status: "complete",
+          },
         },
         {
-          type: "reasoning",
-          text: "Processing your request with multiple agents...",
+          type: "data-workflow-node",
+          data: {
+            id: "agent-1",
+            nodeType: "agent",
+            nodeName: "Classification agent",
+            status: "complete",
+            output: { classification: "return_item" },
+          },
         },
         {
-          type: "data-workflow-node-start",
-          data: { nodeType: "agent", nodeName: "Agent 1" },
+          type: "data-workflow-node",
+          data: {
+            id: "condition-1",
+            nodeType: "if_else",
+            nodeName: "Condition",
+            status: "complete",
+            output: "",
+          },
         },
         {
-          type: "text",
-          text: "Agent processing input...",
+          type: "data-workflow-node",
+          data: {
+            id: "agent-2",
+            nodeType: "agent",
+            nodeName: "Agent",
+            status: "loading",
+          },
         },
         {
-          type: "data-workflow-node-complete",
-          data: { nodeType: "agent", output: "Agent response" },
+          type: "data-workflow-node",
+          data: {
+            id: "agent-2",
+            nodeType: "agent",
+            nodeName: "Agent",
+            status: "complete",
+            output:
+              "We can help you with that! We also offer a replacement device with free shipping if you're interested. Would you like to proceed with the return or get a replacement?",
+          },
         },
         {
-          type: "data-workflow-node-start",
-          data: { nodeType: "if/else", nodeName: "If Condition" },
+          type: "data-workflow-node",
+          data: {
+            id: "user-approval-1",
+            nodeType: "user_approval",
+            nodeName: "User Approval",
+            status: "loading",
+            output: {
+              message: "Do you want to proceed with the return?",
+            },
+            state: "approval-requested",
+          },
         },
         {
-          type: "data-workflow-node-complete",
-          data: { nodeType: "if/else", output: "If Condition met" },
+          type: "data-workflow-node",
+          data: {
+            id: "user-approval-1",
+            nodeType: "user_approval",
+            nodeName: "User Approval",
+            status: "complete",
+            output: {
+              message: "Do you want to proceed with the return?",
+              response: "Approved",
+            },
+            state: "approval-responded",
+            approval: {
+              id: "user-approval-1",
+              approved: true,
+            },
+          },
         },
         {
-          type: "data-workflow-node-start",
-          data: { nodeType: "User_approval", nodeName: "User Approval" },
-        },
-        {
-          type: "data-workflow-node-complete",
-          data: { nodeType: "User_approval", output: "User approved" },
-        },
-        {
-          type: "data-workflow-node-start",
-          data: { nodeType: "end", nodeName: "End" },
-        },
-        {
-          type: "data-workflow-node-complete",
-          data: { nodeType: "end", output: "Workflow ended" },
-        },
-        {
-          type: "data-workflow-complete",
-          data: { output: { result: "Final output from workflow" } },
+          type: "data-workflow-node",
+          data: {
+            id: "end-1",
+            nodeType: "end",
+            nodeName: "End",
+            status: "complete",
+            output: "How can I assist you further?",
+          },
         },
       ],
     },
