@@ -1,4 +1,4 @@
-import { realtime } from "@/lib/ai/realtime";
+import { realtime } from "@/lib/realtime";
 import { serve } from "@upstash/workflow/nextjs";
 import { executeWorkflow } from "@/lib/workflow/execute-workflow";
 import { Node, Edge } from "@xyflow/react";

@@ -6,7 +6,7 @@ export const createWorkflowTransport = ({
   workflowId: string;
 }) =>
   new DefaultChatTransport({
-    api: `/api/workflow/${workflowId}/chat`,
+    api: `/api/workflow/${workflowId}/trigger`,
     async prepareSendMessagesRequest({ messages, id }) {
       return {
         body: {

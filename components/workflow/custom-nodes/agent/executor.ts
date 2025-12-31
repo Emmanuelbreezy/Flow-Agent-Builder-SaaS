@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node } from "@xyflow/react";
 import { streamText } from "ai";
-import { openrouter } from "@/lib/ai/openrouter";
+import { openrouter } from "@/lib/openrouter";
 
 import { replaceVariables } from "@/lib/helper";
 import { MODELS } from "@/lib/workflow/constants";
@@ -20,14 +20,11 @@ export async function executeAgent(
   // Replace variables in instructions
   const replacedInstructions = replaceVariables(instructions, outputs);
 
-  // Build messages
-  const messages = [...history];
-  messages.push({ role: "user", content: replacedInstructions });
-
   // Stream AI response
   const result = streamText({
     model: openrouter.chat(model),
-    messages,
+    messages: history,
+    system: replacedInstructions,
     tools: node.data.tools || {},
     ...(outputFormat === "json" &&
       responseSchema && {

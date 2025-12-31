@@ -42,7 +42,7 @@ import {
 import { getNodeConfig, NodeType } from "@/lib/workflow/node-config";
 import { Spinner } from "@/components/ui/spinner";
 import { nanoid } from "nanoid";
-import { createWorkflowTransport } from "@/lib/ai/transport";
+import { createWorkflowTransport } from "@/lib/transport";
 
 interface ChatPanelProps {
   workflowId: string;

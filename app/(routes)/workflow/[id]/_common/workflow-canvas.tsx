@@ -168,7 +168,7 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
           </ReactFlow>
         </div>
 
-        <ChatView />
+        <ChatView workflowId={workflowId} />
       </div>
 
       {/* Action Bar for unsaved changes */}

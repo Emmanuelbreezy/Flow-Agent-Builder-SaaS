@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ExecutorContextType } from "@/types/workflow";
 import { Node } from "@xyflow/react";
-import { realtime } from "@/lib/ai/realtime";
+import { realtime } from "@/lib/realtime";
 
 export async function executeUserApproval(
   node: Node,
