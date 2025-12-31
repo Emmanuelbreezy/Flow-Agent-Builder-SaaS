@@ -11,7 +11,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useWorkflow } from "@/context/workflow-context";
-import { ChatView } from "@/components/workflow/chat-view";
+import ChatView from "@/components/workflow/chat";
 import { NodeType, createNode } from "@/lib/workflow/node-config";
 import { StartNode } from "@/components/workflow/custom-nodes/start/node";
 import { AgentNode } from "@/components/workflow/custom-nodes/agent/node";

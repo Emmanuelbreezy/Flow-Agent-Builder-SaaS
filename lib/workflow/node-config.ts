@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  Brain,
   FileIcon,
   GitBranch,
   Globe,
+  MousePointer2Icon,
   Play,
   Square,
   UserCheck,
@@ -63,7 +63,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
   [NodeTypeEnum.AGENT]: {
     type: NodeTypeEnum.AGENT,
     label: "Agent",
-    icon: Brain,
+    icon: MousePointer2Icon,
     color: "bg-blue-500",
     inputs: {
       name: "Agent",
@@ -145,9 +145,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
 
 export const getNodeConfig = (type: NodeType) => {
   const nodetype = NODE_CONFIG?.[type];
-  if (!nodetype) {
-    throw new Error(`No node config found for node type: ${type}`);
-  }
+  if (!nodetype) return null;
   return nodetype;
 };
 
@@ -161,6 +159,9 @@ export function createNode({
   position = { x: 400, y: 200 },
 }: CreateNodeOptions) {
   const config = getNodeConfig(type);
+  if (!config) {
+    throw new Error(`No node config found for node type: ${type}`);
+  }
   const id = generateId(type);
   return {
     id,
