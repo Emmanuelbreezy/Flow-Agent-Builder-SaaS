@@ -113,29 +113,41 @@ export function MentionInputComponent({
         onChange={(event) => onChange(event.target.value)}
         singleLine={!multiline}
         placeholder={placeholder}
-        allowSuggestionsAboveCursor={false}
         spellCheck="false"
         style={mentionsStyle}
         className={cn(
           "relative w-full h-auto",
           "[&_textarea]:text-base [&_textarea]:md:text-sm",
           "[&_textarea]:placeholder:text-muted-foreground",
-          "[&_textarea]:w-full [&_textarea]:outline-none"
-          // "[&_textarea]:max-h-60!",
-          // "[&_textarea]:overflow-y-auto!"
+          "[&_textarea]:w-full [&_textarea]:outline-none",
+          className
         )}
+        allowSuggestionsAboveCursor
+        forceSuggestionsAboveCursor
         customSuggestionsContainer={(children) => (
-          <div className="z-50 min-w-64 max-w-80 rounded-lg border border-border bg-popover shadow-md">
+          <div
+            className="fixed bg-popover z-999! min-w-64 max-w-80 rounded-lg border shadow-lg right-10!
+"
+          >
             <Command>
-              <CommandList className=" overflow-y-auto">
-                {React.Children.count(children) === 0 && (
-                  <CommandEmpty>No variables found</CommandEmpty>
-                )}
+              <CommandList className="max-h-64 overflow-y-auto">
                 {children}
               </CommandList>
             </Command>
           </div>
         )}
+        // customSuggestionsContainer={(children) => (
+        //   <div className="z-999 min-w-64 max-w-80 rounded-lg border border-border bg-popover shadow-md inset-y-0">
+        //     <Command>
+        //       <CommandList className=" overflow-y-auto">
+        //         {React.Children.count(children) === 0 && (
+        //           <CommandEmpty>No variables found</CommandEmpty>
+        //         )}
+        //         {children}
+        //       </CommandList>
+        //     </Command>
+        //   </div>
+        // )}
       >
         <Mention
           trigger="{{"

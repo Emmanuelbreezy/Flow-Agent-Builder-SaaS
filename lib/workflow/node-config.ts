@@ -86,7 +86,9 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
       conditions: [
         {
           caseName: "",
-          condition: "",
+          variable: "",
+          operator: "",
+          value: "",
         },
       ],
     },

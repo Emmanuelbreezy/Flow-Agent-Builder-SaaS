@@ -1,17 +1,21 @@
 import { Node } from "@xyflow/react";
 import { Parser } from "expr-eval";
 import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
-import { replace_Variables, replaceVariables } from "@/lib/helper";
+import { replaceVariables } from "@/lib/helper";
+
+interface Condition {
+  caseName?: string;
+  variable?: string;
+  operator?: string;
+  value?: string;
+}
 
 export async function executeIfElse(
   node: Node,
   context: ExecutorContextType
 ): Promise<ExecutorResultType> {
   const { outputs } = context;
-  const conditions =
-    (node.data.conditions as Array<{ condition: string; caseName: string }>) ||
-    [];
-
+  const conditions = (node.data.conditions as Condition[]) || [];
   console.log(conditions, "conditons");
   console.log(outputs, "outputs");
 
@@ -19,19 +23,40 @@ export async function executeIfElse(
     throw new Error("Conditions must be an array");
   }
 
-  for (const condition of conditions) {
-    // Replace variables in condition
-    console.log(condition.condition, "condition.condition, outputs");
-    const resolvedCondition = replace_Variables(condition.condition, outputs);
-    // Not recommended, but fixes the immediate string error
+  function needsQuoting(val: string) {
+    // Checks if val does not already start and end with a quote
+    return isNaN(Number(val)) && !/^["'].*["']$/.test(val);
+  }
 
-    console.log(resolvedCondition, "resolvedCondition");
+  for (let i = 0; i < conditions.length; i++) {
+    const condition = conditions[i];
+    if (
+      !condition.variable ||
+      !condition.operator ||
+      condition.value === undefined
+    )
+      continue;
+
+    // Replace variables in variable and value fields
+    const variable = replaceVariables(condition.variable, outputs).trim();
+    const value = replaceVariables(condition.value, outputs).trim();
+
+    // If variable is a string and not a number, quote it
+    const variableExpr = needsQuoting(variable)
+      ? JSON.stringify(variable)
+      : variable;
+    const valueExpr = needsQuoting(value) ? JSON.stringify(value) : value;
+
+    // Merge variable and value expressions
+    const expr = `${variableExpr} ${condition.operator} ${valueExpr}`;
+
+    console.log(expr, "resolvedCondition");
 
     try {
       // Evaluate condition
       // Use expr-eval instead of eval
       const parser = new Parser();
-      const result = parser.evaluate(resolvedCondition);
+      const result = parser.evaluate(expr);
 
       console.log(result, "conditons result");
 
@@ -39,7 +64,7 @@ export async function executeIfElse(
         return {
           output: {
             result: true,
-            branch: condition.caseName,
+            selectedBranch: `condition-${i}`,
           },
         };
       }
@@ -57,7 +82,7 @@ export async function executeIfElse(
   return {
     output: {
       result: false,
-      branch: "else",
+      selectedBranch: "else",
     },
   };
 }

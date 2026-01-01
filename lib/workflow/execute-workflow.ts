@@ -129,10 +129,10 @@ export async function executeWorkflow(
     for (const node of sortedNodes) {
       // Skip if node shouldn't be executed yet (conditional branching)
 
-      // if (!nodesToExecute.has(node.id)) {
-      //   console.log(`Skipping ${node.id} - not in execution path`);
-      //   continue;
-      // }
+      if (!nodesToExecute.has(node.id)) {
+        console.log(`Skipping ${node.id} - not in execution path`);
+        continue;
+      }
 
       try {
         const nodeType = node.type as NodeType;
@@ -209,7 +209,6 @@ export async function executeWorkflow(
 
         // Determine next nodes to execute
         const nextNodeIds = getNextNodes(node.id, edges, context);
-
         console.log(nextNodeIds, "nextNodeIds");
 
         // If no next nodes and not END node, workflow stops (disconnected)

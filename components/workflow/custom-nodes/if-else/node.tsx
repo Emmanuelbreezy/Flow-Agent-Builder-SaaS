@@ -9,7 +9,9 @@ import { IfElseSettings } from "./settings";
 
 interface Condition {
   caseName?: string;
-  condition: string;
+  variable?: string;
+  operator?: string;
+  value?: string;
 }
 
 export const IfElseNode = ({ data, selected, id }: NodeProps) => {
@@ -39,24 +41,26 @@ export const IfElseNode = ({ data, selected, id }: NodeProps) => {
         settingComponent={<IfElseSettings id={id} data={data} />}
         onDelete={handleDelete}
       >
-        {conditions?.map((condition: Condition, index: number) => (
-          <div key={index} className="relative">
-            <div className={conditionStyle}>
-              <p className="whitespace-nowrap overflow-hidden  truncate max-w-[250px]">
-                {" "}
-                {condition.caseName ||
-                  condition.condition ||
-                  `Condition ${index + 1}`}
-              </p>
+        {conditions?.map((condition: Condition, index: number) => {
+          const condition_merge = `${condition.variable} ${condition.operator} ${condition.value}`;
+          return (
+            <div key={index} className="relative">
+              <div className={conditionStyle}>
+                <p className="whitespace-nowrap overflow-hidden  truncate max-w-62.5">
+                  {condition.caseName ||
+                    condition_merge ||
+                    `Condition ${index + 1}`}
+                </p>
+              </div>
+              <BaseHandle
+                type="source"
+                position={Position.Right}
+                id={`condition-${index}`}
+                className="size-2! -right-1.25"
+              />
             </div>
-            <BaseHandle
-              type="source"
-              position={Position.Right}
-              id={`condition-${index}`}
-              className="size-2! -right-1.25"
-            />
-          </div>
-        ))}
+          );
+        })}
         <div className="relative">
           <div className={conditionStyle}>Else</div>
           <BaseHandle
