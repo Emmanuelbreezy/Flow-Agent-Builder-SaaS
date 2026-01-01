@@ -99,7 +99,7 @@ export async function executeWorkflow(
       nodeType: startNode.type,
       message: `Starting workflow execution...`,
     },
-    transient: true, // This chunk is transient and won't be stored in history
+    //transient: true, // This chunk is transient and won't be stored in history
   });
 
   const context: ExecutorContextType = {
@@ -142,6 +142,7 @@ export async function executeWorkflow(
         // Emit loading state
         await channel.emit("workflow.chunk", {
           type: "data-workflow-node",
+          id: node.id,
           data: {
             id: node.id,
             nodeType: node.type,
@@ -165,6 +166,7 @@ export async function executeWorkflow(
         // Emit node result
         await channel.emit("workflow.chunk", {
           type: "data-workflow-node",
+          id: node.id,
           data: {
             id: node.id,
             nodeType: node.type,
@@ -183,8 +185,10 @@ export async function executeWorkflow(
 
           await channel.emit("workflow.chunk", {
             type: "data-workflow-complete",
-            data: { message: "Workflow completed successfully." },
-            transient: true,
+            data: {
+              message: "Workflow completed successfully.",
+            },
+            //transient: true,
           });
 
           await channel.emit("workflow.chunk", {

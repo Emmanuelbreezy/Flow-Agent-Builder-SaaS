@@ -56,11 +56,12 @@ export async function executeAgent(
   for await (const chunk of stream) {
     await channel.emit("workflow.chunk", {
       type: "data-workflow-node",
+      id: node.id,
       data: {
         id: node.id,
         nodeType: node.type,
         nodeName: node.data?.name,
-        status: "streaming",
+        status: "loading",
         output: chunk,
       },
     });

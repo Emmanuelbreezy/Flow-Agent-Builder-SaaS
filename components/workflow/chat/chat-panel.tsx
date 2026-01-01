@@ -224,7 +224,7 @@ interface NodeDisplayProps {
     id: string;
     nodeType: NodeType;
     nodeName: string;
-    status: "loading" | "streaming" | "complete";
+    status: "loading" | "complete";
     output?: any;
   };
   messageId: string;

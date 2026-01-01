@@ -39,7 +39,7 @@ export const GET = async (req: Request) => {
       const encoder = new TextEncoder();
       await channel.subscribe({
         events: ["workflow.chunk"],
-        //history: true, // <-- This streams both history and new events!
+        history: true, // <-- This streams both history and new events!
         onData({ event, data, channel }) {
           console.log(data, "data", "data");
           controller.enqueue(

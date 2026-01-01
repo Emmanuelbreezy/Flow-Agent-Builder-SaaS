@@ -16,6 +16,7 @@ export async function executeUserApproval(
     // Emit loading state
     await channel.emit("workflow.chunk", {
       type: "data-workflow-node",
+      id: node.id,
       data: {
         id: node.id,
         nodeType: node.type,
@@ -57,6 +58,7 @@ export async function executeUserApproval(
     // Emit completion to chat
     await channel.emit("workflow.chunk", {
       type: "data-workflow-node",
+      id: node.id,
       data: {
         id: node.id,
         nodeType: node.type,
