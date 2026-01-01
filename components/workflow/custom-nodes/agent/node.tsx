@@ -3,7 +3,7 @@
 import React from "react";
 import { MousePointer2 } from "lucide-react";
 import { NodeProps, useReactFlow } from "@xyflow/react";
-import WorkflowNode from "../../workflow-node";
+import WorkflowNode from "../../../workflow/workflow-node";
 import { AgentSettings } from "./settings";
 
 export const AgentNode = ({ data, selected, id }: NodeProps) => {

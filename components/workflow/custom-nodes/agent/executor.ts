@@ -2,7 +2,7 @@
 import { Node } from "@xyflow/react";
 import { streamText } from "ai";
 import { openrouter } from "@/lib/openrouter";
-
+//import { nanoid } from "nanoid";
 import { replaceVariables } from "@/lib/helper";
 import { MODELS } from "@/lib/workflow/constants";
 import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
@@ -20,6 +20,9 @@ export async function executeAgent(
   // Replace variables in instructions
   const replacedInstructions = replaceVariables(instructions, outputs);
 
+  console.log("instructions", instructions, outputs);
+  console.log("replacedInstructions", replacedInstructions);
+
   // Stream AI response
   const result = streamText({
     model: openrouter.chat(model),
@@ -31,6 +34,8 @@ export async function executeAgent(
         experimental_output: responseSchema,
       }),
   });
+
+  console.log("AI response", result);
 
   let fullText = "";
 
@@ -48,6 +53,20 @@ export async function executeAgent(
       },
     });
   }
+
+  // Add AI response to history for context in future nodes
+  // if (history) {
+  //   history.push({
+  //     id: nanoid()
+  //     role: "assistant",
+  //     parts: [
+  //       {
+  //         type: "text",
+  //         text: fullText,
+  //       },
+  //     ],
+  //   });
+  // }
 
   // Return based on output format
   if (node.data.outputFormat === "json") {

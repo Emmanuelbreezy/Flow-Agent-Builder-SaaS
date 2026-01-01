@@ -6,15 +6,18 @@ const client = new Client({
   token: process.env.QSTASH_TOKEN!,
 });
 
+const BASE_URL = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : `http://localhost:3000`;
+
 export async function POST(request: NextRequest) {
   const { workflowId, messages } = await request.json();
 
   try {
     const result = await client.trigger({
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/workflow/${workflowId}/chat`,
+      url: `${BASE_URL}/api/workflow/${workflowId}/chat`,
       body: {
         workflowId,
-        id: crypto.randomUUID(),
         messages,
       },
       retries: 3,

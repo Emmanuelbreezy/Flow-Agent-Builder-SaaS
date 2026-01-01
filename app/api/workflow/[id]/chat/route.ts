@@ -21,6 +21,7 @@ export const GET = async (req: Request) => {
         events: ["workflow.chunk"], // must be array
         onData({ data }) {
           // data IS UIMessageChunk
+          console.log(data, "data");
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
           );
@@ -45,15 +46,17 @@ export const GET = async (req: Request) => {
 };
 
 export const { POST } = serve(async (workflowContext) => {
-  const { workflowId, id, messages } = workflowContext.requestPayload as {
+  const { workflowId, messages } = workflowContext.requestPayload as {
     workflowId: string;
     id: string;
     messages: UIMessage[];
   };
+  console.log(workflowId, messages, "messages");
+  console.log(workflowContext.workflowRunId, "workflowContext .workflowRunId");
   //const workflowRunId = context.workflowRunId;
 
-  const chatId = id || crypto.randomUUID();
-  const channel = realtime.channel(chatId);
+  const workflowRunId = workflowContext.workflowRunId;
+  const channel = realtime.channel(workflowRunId);
   const message = messages[messages.length - 1];
   const userInput =
     message.role === "user" && message.parts[0].type === "text"
@@ -70,13 +73,15 @@ export const { POST } = serve(async (workflowContext) => {
       const nodes = obj.nodes as Node[];
       const edges = obj.edges as Edge[];
 
+      console.log(nodes, edges, "nodes, edges");
+
       await executeWorkflow(
         nodes,
         edges,
         userInput,
         messages,
         channel,
-        chatId,
+        workflowRunId,
         workflowContext
       );
 

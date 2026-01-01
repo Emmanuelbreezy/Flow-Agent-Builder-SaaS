@@ -84,7 +84,7 @@ export const ChatPanel = ({
 
   const handleApprovalNotify = async (nodeId: string, approved: boolean) => {
     try {
-      await axios.post(`/api/workflow/${workflowId}/notify`, {
+      await axios.post(`/api/upstash/notify`, {
         eventId: `approval-${nodeId}-${Date.now()}`,
         eventData: { approved },
       });
@@ -94,7 +94,7 @@ export const ChatPanel = ({
   };
 
   return (
-    <div className="relative flex flex-col justify-between  h-full">
+    <div className="relative flex flex-col h-full overflow-hidden">
       {/* Messages */}
       {messages.length > 0 ? (
         <Conversation className="flex-1">
@@ -177,7 +177,8 @@ export const ChatPanel = ({
           <ConversationScrollButton />
         </Conversation>
       ) : (
-        <div className="flex-[1.3] flex flex-col items-center justify-center ">
+        // <div className="flex-[1.3] flex flex-col items-center justify-center ">
+        <div className="flex-1 flex flex-col items-center justify-center overflow-y-auto">
           <Empty className="border-0">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -193,7 +194,8 @@ export const ChatPanel = ({
       )}
 
       {/* Input */}
-      <div className="shrink-0 flex-[0.4] w-full px-4 pt-2  bg-background">
+      {/* <div className="shrink-0 flex-[0.4] w-full px-4 pt-2  bg-background"> */}
+      <div className="shrink-0 w-full px-4 pt-2 pb-4 bg-background border-t">
         <PromptInput className="shadow-md rounded-xl!" onSubmit={handleSubmit}>
           <PromptInputBody>
             <PromptInputTextarea

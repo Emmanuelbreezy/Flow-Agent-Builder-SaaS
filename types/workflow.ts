@@ -5,7 +5,7 @@ import { UIMessage } from "ai";
 export type ExecutorContextType = {
   outputs: Record<string, any>;
   history: UIMessage[];
-  chatId: string;
+  workflowRunId: string;
   channel: any; // Realtime instance - just use any to avoid type recursion
   workflowContext: WorkflowContext;
 };

@@ -79,9 +79,10 @@ export async function executeWorkflow(
   userInput: string,
   messages: UIMessage[],
   channel: any,
-  chatId: string,
+  workflowRunId: string,
   workflowContext: WorkflowContext
 ) {
+  console.log("In the Execute worflow ");
   const startNode = nodes.find((n) => n.type === NodeTypeEnum.START);
   if (!startNode) throw new Error("No START node");
   // Initialize workflow execution
@@ -102,7 +103,7 @@ export async function executeWorkflow(
       [startNode.id]: { input: userInput },
     },
     history: messages || [],
-    chatId,
+    workflowRunId,
     channel,
     workflowContext,
   };
