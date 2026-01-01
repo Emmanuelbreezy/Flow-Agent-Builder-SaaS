@@ -88,7 +88,6 @@ export async function executeWorkflow(
   workflowRunId: string,
   workflowContext: WorkflowContext
 ) {
-  console.log("In the Execute worflow ");
   const startNode = nodes.find((n) => n.type === NodeTypeEnum.START);
   if (!startNode) throw new Error("No START node");
   // Initialize workflow execution
@@ -115,13 +114,13 @@ export async function executeWorkflow(
   try {
     // Get Sorted Nodes in Execution Order
     const sortedNodes = topologicalSort(nodes, edges);
-    console.log(
-      "Execution order:",
-      sortedNodes.map((n) => `${n.id} (${n.type})`).join(" → ")
-    );
+    // console.log(
+    //   "Execution order:",
+    //   sortedNodes.map((n) => `${n.id} (${n.type})`).join(" → ")
+    // );
 
     // Track which nodes have been executed
-    const executedNodes = new Set<string>();
+    //const executedNodes = new Set<string>();
     const nodesToExecute = new Set<string>([startNode.id]);
 
     console.log(nodesToExecute, "nodesToExecute");
@@ -155,10 +154,13 @@ export async function executeWorkflow(
 
         // Store output
         if (node.type !== NodeTypeEnum.START) {
-          context.outputs[node.id] = result.output;
+          const outputResult =
+            node.type === NodeTypeEnum.AGENT ? result : result.output;
+          context.outputs[node.id] = outputResult;
         }
 
-        executedNodes.add(node.id);
+        // A
+        //executedNodes.add(node.id);
 
         console.log(
           `Node ${node.id} (${node.type}) executed. Output:`,
@@ -201,12 +203,14 @@ export async function executeWorkflow(
           return {
             success: true,
             outputs: context.outputs,
-            executedNodes: Array.from(executedNodes),
+            //executedNodes: Array.from(executedNodes),
           };
         }
 
         // Determine next nodes to execute
         const nextNodeIds = getNextNodes(node.id, edges, context);
+
+        console.log(nextNodeIds, "nextNodeIds");
 
         // If no next nodes and not END node, workflow stops (disconnected)
         if (nextNodeIds.length === 0) {
@@ -242,6 +246,7 @@ export async function executeWorkflow(
           data: {
             id: node.id,
             nodeType: node.type,
+            nodeName: node.data?.name,
             status: "error",
             error: error instanceof Error ? error.message : String(error),
           },

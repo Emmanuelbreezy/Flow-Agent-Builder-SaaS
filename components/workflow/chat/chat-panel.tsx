@@ -245,7 +245,7 @@ export const NodeDisplay = ({
         ) : (
           <Icon className="h-4 w-4" />
         )}
-        <span className="text-sm font-medium">{nodeConfig.label}</span>
+        <span className="text-sm font-medium">{data.nodeName}</span>
       </div>
       {/* Content */}
 

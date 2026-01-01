@@ -14,6 +14,10 @@
   color: var(--primary) !important;
 }
 
+.relative__highlighter {
+  height: 300px;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -28,7 +28,7 @@ export const IfElseNode = ({ data, selected, id }: NodeProps) => {
     <>
       <WorkflowNode
         label="If/else"
-        subText="condition"
+        subText="Condition"
         className="w-full"
         icon={GitBranch}
         selected={selected}
