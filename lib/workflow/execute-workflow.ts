@@ -188,7 +188,7 @@ export async function executeWorkflow(
             data: {
               message: "Workflow completed successfully.",
             },
-            //transient: true,
+            transient: true,
           });
 
           await channel.emit("workflow.chunk", {
@@ -235,7 +235,8 @@ export async function executeWorkflow(
       } catch (error) {
         console.error(`Error executing node ${node.id}:`, error);
         await channel.emit("workflow.error", {
-          type: "data-workflow-node-error",
+          type: "data-workflow-node",
+          id: node.id,
           data: {
             id: node.id,
             nodeType: node.type,

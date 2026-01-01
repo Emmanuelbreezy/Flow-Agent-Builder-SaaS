@@ -110,17 +110,17 @@ export const { POST } = serve(async (workflowContext) => {
       );
 
       // // Store final result in Redis
-      await redis.zadd(
-        `history:${workflowRunId}`,
-        { nx: true },
-        {
-          score: Date.now(),
-          member: {
-            id: workflowRunId,
-            type: "workflow-result",
-          },
-        }
-      );
+      // await redis.zadd(
+      //   `history:${workflowRunId}`,
+      //   { nx: true },
+      //   {
+      //     score: Date.now(),
+      //     member: {
+      //       id: workflowRunId,
+      //       type: "workflow-result",
+      //     },
+      //   }
+      // );
     } catch (error) {
       console.error("Workflow execution error:", error);
       throw error;

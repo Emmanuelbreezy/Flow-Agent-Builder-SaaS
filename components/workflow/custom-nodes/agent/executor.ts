@@ -52,31 +52,35 @@ export async function executeAgent(
     },
   });
 
+  let fullText = "";
   // Stream chunks to channel
   for await (const chunk of stream) {
-    await channel.emit("workflow.chunk", {
-      type: "data-workflow-node",
-      id: node.id,
-      data: {
+    console.log("chunk", chunk);
+    if (chunk.type === "text-delta" && typeof chunk.delta === "string") {
+      fullText += chunk.delta;
+      await channel.emit("workflow.chunk", {
+        type: "data-workflow-node",
         id: node.id,
-        nodeType: node.type,
-        nodeName: node.data?.name,
-        status: "loading",
-        output: chunk,
-      },
-    });
+        data: {
+          id: node.id,
+          nodeType: node.type,
+          nodeName: node.data?.name,
+          status: "loading",
+          output: fullText,
+        },
+      });
+    }
   }
 
-  const fullText = await result.text;
-
-  console.log(fullText);
+  const fullResult = await result.text;
+  console.log(fullResult);
 
   // Add AI response to history for context in future nodes
 
   // Return based on output format
   if (node.data.outputFormat === "json") {
     try {
-      const parsed = JSON.parse(fullText);
+      const parsed = JSON.parse(fullResult);
       return { output: parsed };
     } catch (error: any) {
       console.error("Failed to parse JSON response from agent:", error);
@@ -84,5 +88,5 @@ export async function executeAgent(
     }
   }
 
-  return { output: { text: fullText } };
+  return { output: { text: fullResult } };
 }

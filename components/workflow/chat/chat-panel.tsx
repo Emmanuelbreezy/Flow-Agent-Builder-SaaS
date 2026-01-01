@@ -224,8 +224,9 @@ interface NodeDisplayProps {
     id: string;
     nodeType: NodeType;
     nodeName: string;
-    status: "loading" | "complete";
+    status: "loading" | "error" | "complete";
     output?: any;
+    error?: any;
   };
   messageId: string;
   partIndex: number;
@@ -239,27 +240,33 @@ export const NodeDisplay = ({
   const nodeConfig = getNodeConfig(data.nodeType);
   if (!nodeConfig) return null;
   const Icon = nodeConfig.icon;
+  const status = data.status;
+  const output = data.output;
+
   const outputText =
-    typeof data.output === "string"
-      ? data.output
-      : JSON.stringify(data.output, null, 2);
+    typeof output === "string" ? output : JSON.stringify(output, null, 2);
   return (
     <div key={`${messageId}-node-${partIndex}`}>
       {/* Header */}
       <div
         className={`px-1 py-2 flex items-center gap-2 ${
-          data.status === "loading" && "animate-pulse"
+          status === "loading" && "animate-pulse"
         }`}
       >
-        {data.status === "loading" ? <Spinner /> : <Icon className="h-4 w-4" />}
+        {status === "loading" ? <Spinner /> : <Icon className="h-4 w-4" />}
         <span className="text-sm font-medium">{data.nodeName}</span>
       </div>
       {/* Content */}
-      {data.output && data.status === "complete" && (
-        <div className="px-3 py-2">
-          <MessageResponse>{outputText}</MessageResponse>
-        </div>
-      )}
+
+      <div>
+        {output && (
+          <div className="px-3 py-2">
+            <MessageResponse>{outputText}</MessageResponse>
+          </div>
+        )}
+
+        {status === "error" && <MessageResponse>{data.error}</MessageResponse>}
+      </div>
     </div>
   );
 };
