@@ -2,7 +2,7 @@
 "use client";
 import React, { useState } from "react";
 import axios from "axios";
-import { ArrowUp, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowUp, Sparkles } from "lucide-react";
 import { UIMessage, useChat } from "@ai-sdk/react";
 import {
   Conversation,
@@ -43,6 +43,7 @@ import { getNodeConfig, NodeType } from "@/lib/workflow/node-config";
 import { Spinner } from "@/components/ui/spinner";
 import { nanoid } from "nanoid";
 import { createWorkflowTransport } from "@/lib/transport";
+import { cn } from "@/lib/utils";
 
 interface ChatPanelProps {
   workflowId: string;
@@ -80,17 +81,6 @@ export const ChatPanel = ({
     if (!message.text?.trim()) return;
     sendMessage({ text: message.text });
     setInput("");
-  };
-
-  const handleApprovalNotify = async (nodeId: string, approved: boolean) => {
-    try {
-      await axios.post(`/api/upstash/notify`, {
-        eventId: `approval-${nodeId}-${Date.now()}`,
-        eventData: { approved },
-      });
-    } catch (error) {
-      console.error("Failed to notify approval:", error);
-    }
   };
 
   return (
@@ -139,12 +129,6 @@ export const ChatPanel = ({
                             <UserApproval
                               key={`${message.id}-node-${i}`}
                               data={data}
-                              onApprove={(nodeId) => {
-                                handleApprovalNotify(nodeId, true);
-                              }}
-                              onReject={(nodeId) => {
-                                handleApprovalNotify(nodeId, false);
-                              }}
                             />
                           );
                         }
@@ -249,12 +233,19 @@ export const NodeDisplay = ({
     <div key={`${messageId}-node-${partIndex}`}>
       {/* Header */}
       <div
-        className={`px-1 py-2 flex items-center gap-2 ${
+        className={cn(
+          `px-1 py-2 flex items-center gap-2`,
           status === "loading" && "animate-pulse"
-        }`}
+        )}
       >
-        {status === "loading" ? <Spinner /> : <Icon className="h-4 w-4" />}
-        <span className="text-sm font-medium">{data.nodeName}</span>
+        {status === "loading" ? (
+          <Spinner />
+        ) : status === "error" ? (
+          <AlertCircle className="text-destructive h-4 w-4" />
+        ) : (
+          <Icon className="h-4 w-4" />
+        )}
+        <span className="text-sm font-medium">{nodeConfig.label}</span>
       </div>
       {/* Content */}
 
@@ -265,7 +256,13 @@ export const NodeDisplay = ({
           </div>
         )}
 
-        {status === "error" && <MessageResponse>{data.error}</MessageResponse>}
+        {status === "error" && (
+          <div className="p-3 bg-destructive/10 text-destructive rounded-md">
+            {JSON.stringify({
+              error: data.error,
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -286,34 +283,25 @@ interface UserApprovalProps {
       approved: boolean;
     };
   };
-  onApprove: (nodeId: string) => void;
-  onReject: (nodeId: string) => void;
 }
 
-export const UserApproval = ({
-  data,
-  onApprove,
-  onReject,
-}: UserApprovalProps) => {
+export const UserApproval = ({ data }: UserApprovalProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleApprove = async () => {
+  const handleApproval = async (nodeId: string, approved: boolean) => {
     setIsLoading(true);
     try {
-      await onApprove(data.id);
+      await axios.post(`/api/upstash/notify`, {
+        eventId: `approval-${nodeId}-${Date.now()}`,
+        eventData: { approved },
+      });
+    } catch (error) {
+      console.error("Failed to notify approval:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleReject = async () => {
-    setIsLoading(true);
-    try {
-      await onReject(data.id);
-    } finally {
-      setIsLoading(false);
-    }
-  };
   return (
     <>
       <Confirmation
@@ -334,7 +322,7 @@ export const UserApproval = ({
               <ConfirmationAction
                 variant="default"
                 disabled={isLoading}
-                onClick={handleApprove}
+                onClick={() => handleApproval(data.id, true)}
               >
                 Approve
                 {isLoading && <Spinner />}
@@ -342,7 +330,7 @@ export const UserApproval = ({
               <ConfirmationAction
                 variant="outline"
                 disabled={isLoading}
-                onClick={handleReject}
+                onClick={() => handleApproval(data.id, false)}
               >
                 Reject
                 {isLoading && <Spinner />}

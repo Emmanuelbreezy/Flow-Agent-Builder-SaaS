@@ -30,7 +30,7 @@ export const NodeTypeEnum = {
 export type NodeType = (typeof NodeTypeEnum)[keyof typeof NodeTypeEnum];
 
 export const NODE_EXECUTORS = {
-  //[NodeTypeEnum.START]: executeStart,
+  [NodeTypeEnum.START]: executeStart,
   [NodeTypeEnum.AGENT]: executeAgent,
   [NodeTypeEnum.IF_ELSE]: executeIfElse,
   [NodeTypeEnum.HTTP]: executeHttp,

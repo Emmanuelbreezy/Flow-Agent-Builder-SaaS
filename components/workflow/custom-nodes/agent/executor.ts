@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node } from "@xyflow/react";
-import { convertToModelMessages, streamText } from "ai";
+import { convertJsonSchemaToZod } from "zod-from-json-schema";
+import { convertToModelMessages, Output, streamText } from "ai";
 import { openrouter } from "@/lib/openrouter";
 //import { nanoid } from "nanoid";
 import { replaceVariables } from "@/lib/helper";
@@ -17,6 +18,8 @@ export async function executeAgent(
   const responseSchema = node.data.responseSchema as any;
   const model = (node.data.model as string) || MODELS[0].value;
 
+  const zodSchema = convertJsonSchemaToZod(responseSchema);
+
   // Replace variables in instructions
   const replacedInstructions = replaceVariables(instructions, outputs);
 
@@ -24,11 +27,6 @@ export async function executeAgent(
   console.log("replacedInstructions", replacedInstructions);
 
   const modelMessages = await convertToModelMessages(history);
-
-  console.log(
-    JSON.stringify(modelMessages, null, 2),
-    "-----convertToModelMessages"
-  );
 
   // Stream AI response
   const result = streamText({
@@ -38,26 +36,23 @@ export async function executeAgent(
     //tools: node.data.tools || {},
     ...(outputFormat === "json" &&
       responseSchema && {
-        experimental_output: responseSchema,
+        output: Output.object({ schema: zodSchema }),
       }),
   });
 
-  const stream = result.toUIMessageStream({
-    generateMessageId: () => crypto.randomUUID(),
-    onFinish: async ({ messages }) => {
-      for (const member of messages) {
-        // await redis.zadd(`history:${id}`, { score: Date.now(), member });
-        history.push(member);
-      }
-    },
-  });
+  const res_text = await result.text;
+  console.log("Streaming result text", res_text, "----");
 
-  let fullText = "";
-  // Stream chunks to channel
-  for await (const chunk of stream) {
-    console.log("chunk", chunk);
-    if (chunk.type === "text-delta" && typeof chunk.delta === "string") {
-      fullText += chunk.delta;
+  if (outputFormat === "json") {
+    try {
+      const fullResult = await result.text;
+      console.log("Full JSON response from agent:", fullResult, "---------");
+      const parsed = JSON.parse(fullResult);
+      console.log("Parsed JSON response from agent:", parsed);
+      return { output: parsed };
+    } catch (error: any) {
+      console.error("Failed to parse JSON response from agent:", error);
+
       await channel.emit("workflow.chunk", {
         type: "data-workflow-node",
         id: node.id,
@@ -65,28 +60,40 @@ export async function executeAgent(
           id: node.id,
           nodeType: node.type,
           nodeName: node.data?.name,
-          status: "loading",
-          output: fullText,
+          status: "error",
+          error: error.message || "Failed to parse JSON response from agent",
         },
       });
-    }
-  }
-
-  const fullResult = await result.text;
-  console.log(fullResult);
-
-  // Add AI response to history for context in future nodes
-
-  // Return based on output format
-  if (node.data.outputFormat === "json") {
-    try {
-      const parsed = JSON.parse(fullResult);
-      return { output: parsed };
-    } catch (error: any) {
-      console.error("Failed to parse JSON response from agent:", error);
       throw new Error("Failed to parse JSON response from agent");
     }
   }
 
-  return { output: { text: fullResult } };
+  // const stream = result.toUIMessageStream({
+  //   generateMessageId: () => crypto.randomUUID(),
+  //   onFinish: async ({ messages }) => {
+  //     for (const member of messages) {
+  //       // await redis.zadd(`history:${id}`, { score: Date.now(), member });
+  //       history.push(member);
+  //     }
+  //   },
+  // });
+
+  let fullText = "";
+  // Stream chunks to channel
+  for await (const chunk of result.textStream) {
+    fullText += chunk;
+    await channel.emit("workflow.chunk", {
+      type: "data-workflow-node",
+      id: node.id,
+      data: {
+        id: node.id,
+        nodeType: node.type,
+        nodeName: node.data?.name,
+        status: "loading",
+        output: fullText,
+      },
+    });
+  }
+
+  return { output: { text: fullText } };
 }

@@ -129,7 +129,6 @@ export async function executeWorkflow(
     // Execute nodes in topological order
     for (const node of sortedNodes) {
       // Skip if node shouldn't be executed yet (conditional branching)
-      if (node.type === NodeTypeEnum.START) continue;
 
       // if (!nodesToExecute.has(node.id)) {
       //   console.log(`Skipping ${node.id} - not in execution path`);
@@ -155,7 +154,10 @@ export async function executeWorkflow(
         const result = await executor(node, context);
 
         // Store output
-        context.outputs[node.id] = result.output;
+        if (node.type !== NodeTypeEnum.START) {
+          context.outputs[node.id] = result.output;
+        }
+
         executedNodes.add(node.id);
 
         console.log(
@@ -229,17 +231,18 @@ export async function executeWorkflow(
 
         // Add next nodes to execution queue
         nextNodeIds.forEach((id) => nodesToExecute.add(id));
-
+        //
         //
         //
       } catch (error) {
         console.error(`Error executing node ${node.id}:`, error);
-        await channel.emit("workflow.error", {
+        await channel.emit("workflow.chunk", {
           type: "data-workflow-node",
           id: node.id,
           data: {
             id: node.id,
             nodeType: node.type,
+            status: "error",
             error: error instanceof Error ? error.message : String(error),
           },
         });
@@ -261,7 +264,6 @@ export async function executeWorkflow(
     };
   } catch (error) {
     console.error("Workflow execution failed:", error);
-
     await channel.emit("workflow.chunk", {
       type: "finish",
       reason: "error",

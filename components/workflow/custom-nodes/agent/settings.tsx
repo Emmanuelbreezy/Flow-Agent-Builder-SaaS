@@ -244,7 +244,7 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
                           if (currentValue === "text") {
                             updateNodeData(id, {
                               outputFormat: currentValue,
-                              outputSchema: ["output.text"],
+                              outputs: ["output.text"],
                               responseSchema: {},
                             });
                           } else {
@@ -283,7 +283,7 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
                 ).map((key) => `output.${key}`);
                 updateNodeData(id, {
                   responseSchema: value,
-                  outputSchema: newOutputSchema,
+                  outputs: newOutputSchema,
                 });
               }}
             />
