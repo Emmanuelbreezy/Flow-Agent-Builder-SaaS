@@ -7,24 +7,22 @@ export async function executeUserApproval(
   node: Node,
   context: ExecutorContextType
 ): Promise<{ output: any }> {
-  const { channel, chatId, workflowContext } = context;
+  const { channel, workflowContext, workflowRunId } = context;
   const message = (node.data?.message as string) || "Do you want to proceed?";
   const eventId = `approval-${node.id}-${Date.now()}`;
-  const realtimeChannel = realtime.channel(chatId);
+  const realtimeChannel = realtime.channel(workflowRunId);
 
   try {
     // Emit loading state
     await channel.emit("workflow.chunk", {
-      chunk: {
-        type: "data-workflow-node",
-        data: {
-          id: node.id,
-          nodeType: node.type,
-          nodeName: node.data?.name,
-          status: "loading",
-          state: "approval-requested",
-          output: { message },
-        },
+      type: "data-workflow-node",
+      data: {
+        id: node.id,
+        nodeType: node.type,
+        nodeName: node.data?.name,
+        status: "loading",
+        state: "approval-requested",
+        output: { message },
       },
     });
 
@@ -58,22 +56,20 @@ export async function executeUserApproval(
 
     // Emit completion to chat
     await channel.emit("workflow.chunk", {
-      chunk: {
-        type: "data-workflow-node",
-        data: {
+      type: "data-workflow-node",
+      data: {
+        id: node.id,
+        nodeType: node.type,
+        nodeName: node.data?.name,
+        status: "complete",
+        state: "approval-responded",
+        output: {
+          message,
+          response: eventData.approved ? "Approved" : "Rejected",
+        },
+        approval: {
           id: node.id,
-          nodeType: node.type,
-          nodeName: node.data?.name,
-          status: "complete",
-          state: "approval-responded",
-          output: {
-            message,
-            response: eventData.approved ? "Approved" : "Rejected",
-          },
-          approval: {
-            id: node.id,
-            approved: eventData.approved,
-          },
+          approved: eventData.approved,
         },
       },
     });

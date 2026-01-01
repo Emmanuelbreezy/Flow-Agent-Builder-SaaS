@@ -4,7 +4,7 @@ import { UIMessageChunk } from "ai";
 import z from "zod/v4";
 //import { redis } from "./redis";
 
-const redis = Redis.fromEnv();
+export const redis = Redis.fromEnv();
 
 export const schema = {
   workflow: {

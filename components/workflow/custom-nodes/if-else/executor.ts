@@ -1,11 +1,11 @@
 import { Node } from "@xyflow/react";
-import { ExecutorContext, ExecutorResult } from "@/lib/workflow/type";
+import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
 import { replaceVariables } from "@/lib/helper";
 
 export async function executeIfElse(
   node: Node,
-  context: ExecutorContext
-): Promise<ExecutorResult> {
+  context: ExecutorContextType
+): Promise<ExecutorResultType> {
   const { outputs } = context;
   const conditions =
     (node.data.conditions as Array<{ condition: string; caseName: string }>) ||

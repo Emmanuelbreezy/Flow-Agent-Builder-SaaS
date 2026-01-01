@@ -14,7 +14,7 @@ import { WorkflowContext } from "@upstash/workflow";
  */
 function topologicalSort(nodes: Node[], edges: Edge[]) {
   const ts = new TopologicalSort(new Map());
-
+  const excludedNodes: NodeType[] = [NodeTypeEnum.COMMENT]; // Exclude COMMENT nodes from execution
   // Add all nodes to the sort
   nodes.forEach((node) => {
     ts.addNode(node.id, node);
@@ -30,8 +30,14 @@ function topologicalSort(nodes: Node[], edges: Edge[]) {
     const sortedMap = ts.sort();
     // Make array of sorted node IDs
     const sortedIds = Array.from(sortedMap.keys());
-    // Map sorted IDs to original nodes
-    return sortedIds.map((id) => nodes.find((node) => node.id === id)!);
+    // Map sorted IDs to original nodes and filter out excluded nodes
+    return sortedIds
+      .map((id) => nodes.find((node) => node.id === id)!)
+      .filter(
+        (node) =>
+          node.type !== undefined &&
+          !excludedNodes.includes(node.type as NodeType)
+      );
   } catch (error: any) {
     throw new Error(
       "Workflow contains a cycle or invalid dependencies. Cannot execute.",
@@ -87,15 +93,13 @@ export async function executeWorkflow(
   if (!startNode) throw new Error("No START node");
   // Initialize workflow execution
   await channel.emit("workflow.chunk", {
-    chunk: {
-      type: "data-workflow-start",
-      data: {
-        id: startNode.id,
-        nodeType: startNode.type,
-        message: `Starting workflow execution...`,
-      },
-      transient: true, // This chunk is transient and won't be stored in history
+    type: "data-workflow-start",
+    data: {
+      id: startNode.id,
+      nodeType: startNode.type,
+      message: `Starting workflow execution...`,
     },
+    transient: true, // This chunk is transient and won't be stored in history
   });
 
   const context: ExecutorContextType = {
@@ -120,27 +124,29 @@ export async function executeWorkflow(
     const executedNodes = new Set<string>();
     const nodesToExecute = new Set<string>([startNode.id]);
 
+    console.log(nodesToExecute, "nodesToExecute");
+
     // Execute nodes in topological order
     for (const node of sortedNodes) {
       // Skip if node shouldn't be executed yet (conditional branching)
-      if (!nodesToExecute.has(node.id)) {
-        console.log(`Skipping ${node.id} - not in execution path`);
-        continue;
-      }
+      if (node.type === NodeTypeEnum.START) continue;
+
+      // if (!nodesToExecute.has(node.id)) {
+      //   console.log(`Skipping ${node.id} - not in execution path`);
+      //   continue;
+      // }
 
       try {
         const nodeType = node.type as NodeType;
         const executor = getNodeExecutor(nodeType);
         // Emit loading state
         await channel.emit("workflow.chunk", {
-          chunk: {
-            type: "data-workflow-node",
-            data: {
-              id: node.id,
-              nodeType: node.type,
-              nodeName: node.data?.name,
-              status: "loading",
-            },
+          type: "data-workflow-node",
+          data: {
+            id: node.id,
+            nodeType: node.type,
+            nodeName: node.data?.name,
+            status: "loading",
           },
         });
 
@@ -158,31 +164,32 @@ export async function executeWorkflow(
 
         // Emit node result
         await channel.emit("workflow.chunk", {
-          chunk: {
-            type: "data-workflow-node",
-            data: {
-              id: node.id,
-              nodeType: node.type,
-              nodeName: node.data?.name,
-              output: result.output?.text || result.output,
-              status: "complete",
-            },
+          type: "data-workflow-node",
+          data: {
+            id: node.id,
+            nodeType: node.type,
+            nodeName: node.data?.name,
+            output: result.output?.text || result.output,
+            status: "complete",
           },
         });
 
         // Handle END node
         if (node.type === NodeTypeEnum.END) {
-          console.log("End node reached, finishing workflow.");
+          console.log(
+            "End node reached, finishing workflow."
+            //JSON.stringify(context, null, 2)
+          );
+
           await channel.emit("workflow.chunk", {
-            chunk: {
-              type: "data-workflow-complete",
-              data: { message: "Workflow completed successfully." },
-              transient: true,
-            },
+            type: "data-workflow-complete",
+            data: { message: "Workflow completed successfully." },
+            transient: true,
           });
 
           await channel.emit("workflow.chunk", {
-            chunk: { type: "finish", reason: "stop" },
+            type: "finish",
+            reason: "stop",
           });
 
           return {
@@ -198,17 +205,16 @@ export async function executeWorkflow(
         // If no next nodes and not END node, workflow stops (disconnected)
         if (nextNodeIds.length === 0) {
           await channel.emit("workflow.chunk", {
-            chunk: {
-              type: "data-workflow-error",
-              data: {
-                message: `Node "${node.data?.name}" has no connections. Workflow stopped.`,
-              },
-              transient: true,
+            type: "data-workflow-error",
+            data: {
+              message: `Node "${node.data?.name}" has no connections. Workflow stopped.`,
             },
+            transient: true,
           });
 
           await channel.emit("workflow.chunk", {
-            chunk: { type: "finish", reason: "stop" },
+            type: "finish",
+            reason: "stop",
           });
 
           return {
@@ -239,7 +245,8 @@ export async function executeWorkflow(
 
     // If no END node was reached
     await channel.emit("workflow.chunk", {
-      chunk: { type: "finish", reason: "stop" },
+      type: "finish",
+      reason: "stop",
     });
 
     return {
@@ -251,7 +258,8 @@ export async function executeWorkflow(
     console.error("Workflow execution failed:", error);
 
     await channel.emit("workflow.chunk", {
-      chunk: { type: "finish", reason: "error" },
+      type: "finish",
+      reason: "error",
     });
 
     throw error;

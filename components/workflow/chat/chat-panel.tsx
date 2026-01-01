@@ -97,7 +97,7 @@ export const ChatPanel = ({
     <div className="relative flex flex-col h-full overflow-hidden">
       {/* Messages */}
       {messages.length > 0 ? (
-        <Conversation className="flex-1">
+        <Conversation className="flex-1 h-full">
           <ConversationContent>
             {messages.map((message) => (
               <Message from={message.role} key={message.id}>
@@ -195,7 +195,7 @@ export const ChatPanel = ({
 
       {/* Input */}
       {/* <div className="shrink-0 flex-[0.4] w-full px-4 pt-2  bg-background"> */}
-      <div className="shrink-0 w-full px-4 pt-2 pb-4 bg-background border-t">
+      <div className="shrink-0 w-full flex-[0.4] px-4 pt-2 pb-4 bg-background border-t">
         <PromptInput className="shadow-md rounded-xl!" onSubmit={handleSubmit}>
           <PromptInputBody>
             <PromptInputTextarea
@@ -224,7 +224,7 @@ interface NodeDisplayProps {
     id: string;
     nodeType: NodeType;
     nodeName: string;
-    status: "loading" | "complete";
+    status: "loading" | "streaming" | "complete";
     output?: any;
   };
   messageId: string;

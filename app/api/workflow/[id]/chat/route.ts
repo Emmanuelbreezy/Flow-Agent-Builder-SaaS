@@ -1,4 +1,4 @@
-import { realtime } from "@/lib/realtime";
+import { realtime, redis } from "@/lib/realtime";
 import { serve } from "@upstash/workflow/nextjs";
 import { executeWorkflow } from "@/lib/workflow/execute-workflow";
 import { Node, Edge } from "@xyflow/react";
@@ -10,27 +10,45 @@ export const GET = async (req: Request) => {
 
   const id = searchParams.get("id");
   if (!id) return new Response("ID is required.");
+  console.log(id, "SSE chat id");
 
   const channel = realtime.channel(id);
+
+  // const stream = new ReadableStream({
+  //   async start(controller) {
+  //     const historyMessages = await channel.history();
+  //     for (const chunk of historyMessages) {
+  //       if (chunk.event === "workflow.chunk") {
+  //         controller.enqueue(`data: ${JSON.stringify(chunk)}\n\n`);
+  //         console.log(chunk.data, "data");
+  //         if (
+  //           chunk.data &&
+  //           typeof chunk.data === "object" &&
+  //           "type" in chunk.data &&
+  //           (chunk.data as { type?: string }).type === "finish"
+  //         ) {
+  //           controller.close();
+  //         }
+  //       }
+  //     }
+  //   },
+  // });
 
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
-      // Subscribe properly (server side)
       await channel.subscribe({
-        events: ["workflow.chunk"], // must be array
-        onData({ data }) {
-          // data IS UIMessageChunk
-          console.log(data, "data");
+        events: ["workflow.chunk"],
+        //history: true, // <-- This streams both history and new events!
+        onData({ event, data, channel }) {
+          console.log(data, "data", "data");
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
           );
-          // Close stream on finish
-          if (data.type === "finish") {
-            controller.close();
-          }
+          if (data.type === "finish") controller.close();
         },
       });
+
       req.signal.addEventListener("abort", () => {
         controller.close();
       });
@@ -40,7 +58,6 @@ export const GET = async (req: Request) => {
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
     },
   });
 };
@@ -51,17 +68,24 @@ export const { POST } = serve(async (workflowContext) => {
     id: string;
     messages: UIMessage[];
   };
-  console.log(workflowId, messages, "messages");
-  console.log(workflowContext.workflowRunId, "workflowContext .workflowRunId");
-  //const workflowRunId = context.workflowRunId;
-
   const workflowRunId = workflowContext.workflowRunId;
+  console.log(workflowContext.workflowRunId, "workflowContext .workflowRunId");
+
+  console.log("- -------------- -------   ");
+
   const channel = realtime.channel(workflowRunId);
   const message = messages[messages.length - 1];
   const userInput =
     message.role === "user" && message.parts[0].type === "text"
       ? message.parts[0].text
       : "";
+
+  const score = Date.now();
+  await redis.zadd(
+    `history:${workflowId}`,
+    { nx: true },
+    { score, member: message }
+  );
 
   await workflowContext.run("workflow-execution", async () => {
     try {
@@ -73,7 +97,7 @@ export const { POST } = serve(async (workflowContext) => {
       const nodes = obj.nodes as Node[];
       const edges = obj.edges as Edge[];
 
-      console.log(nodes, edges, "nodes, edges");
+      // console.log(nodes, edges, "nodes, edges");
 
       await executeWorkflow(
         nodes,
@@ -86,17 +110,17 @@ export const { POST } = serve(async (workflowContext) => {
       );
 
       // // Store final result in Redis
-      // await redis.zadd(
-      //   `history:${chatId}`,
-      //   { nx: true },
-      //   {
-      //     score: Date.now(),
-      //     member: {
-      //       id: chatId,
-      //       type: "workflow-result",
-      //     },
-      //   }
-      // );
+      await redis.zadd(
+        `history:${workflowRunId}`,
+        { nx: true },
+        {
+          score: Date.now(),
+          member: {
+            id: workflowRunId,
+            type: "workflow-result",
+          },
+        }
+      );
     } catch (error) {
       console.error("Workflow execution error:", error);
       throw error;

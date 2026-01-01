@@ -1,3 +1,4 @@
+import { Node } from "@xyflow/react";
 import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
 
 export async function executeStart(
@@ -6,6 +7,8 @@ export async function executeStart(
 ): Promise<ExecutorResultType> {
   // Start node just passes through the input
   return {
-    output: context.outputs.start.input,
+    output: {
+      input: context.outputs[node.id]?.input,
+    },
   };
 }

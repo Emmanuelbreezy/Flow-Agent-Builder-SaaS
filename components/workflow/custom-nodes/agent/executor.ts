@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node } from "@xyflow/react";
-import { streamText } from "ai";
+import { convertToModelMessages, streamText } from "ai";
 import { openrouter } from "@/lib/openrouter";
 //import { nanoid } from "nanoid";
 import { replaceVariables } from "@/lib/helper";
@@ -23,50 +23,54 @@ export async function executeAgent(
   console.log("instructions", instructions, outputs);
   console.log("replacedInstructions", replacedInstructions);
 
+  const modelMessages = await convertToModelMessages(history);
+
+  console.log(
+    JSON.stringify(modelMessages, null, 2),
+    "-----convertToModelMessages"
+  );
+
   // Stream AI response
   const result = streamText({
     model: openrouter.chat(model),
-    messages: history,
     system: replacedInstructions,
-    tools: node.data.tools || {},
+    messages: modelMessages,
+    //tools: node.data.tools || {},
     ...(outputFormat === "json" &&
       responseSchema && {
         experimental_output: responseSchema,
       }),
   });
 
-  console.log("AI response", result);
-
-  let fullText = "";
+  const stream = result.toUIMessageStream({
+    generateMessageId: () => crypto.randomUUID(),
+    onFinish: async ({ messages }) => {
+      for (const member of messages) {
+        // await redis.zadd(`history:${id}`, { score: Date.now(), member });
+        history.push(member);
+      }
+    },
+  });
 
   // Stream chunks to channel
-  for await (const chunk of result.textStream) {
-    fullText += chunk;
+  for await (const chunk of stream) {
     await channel.emit("workflow.chunk", {
       type: "data-workflow-node",
       data: {
         id: node.id,
         nodeType: node.type,
         nodeName: node.data?.name,
-        status: "loading",
+        status: "streaming",
         output: chunk,
       },
     });
   }
 
+  const fullText = await result.text;
+
+  console.log(fullText);
+
   // Add AI response to history for context in future nodes
-  // if (history) {
-  //   history.push({
-  //     id: nanoid()
-  //     role: "assistant",
-  //     parts: [
-  //       {
-  //         type: "text",
-  //         text: fullText,
-  //       },
-  //     ],
-  //   });
-  // }
 
   // Return based on output format
   if (node.data.outputFormat === "json") {
