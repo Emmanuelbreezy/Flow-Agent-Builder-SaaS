@@ -2,7 +2,7 @@
 "use client";
 import React, { useState } from "react";
 import axios from "axios";
-import { AlertCircle, ArrowUp, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowUp, Check, Sparkles } from "lucide-react";
 import { UIMessage, useChat } from "@ai-sdk/react";
 import {
   Conversation,
@@ -44,7 +44,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { nanoid } from "nanoid";
 import { createWorkflowTransport } from "@/lib/transport";
 import { cn } from "@/lib/utils";
-import { Loader } from "@/components/ui/loader";
+import { Loader, TextShimmerLoader } from "@/components/ui/loader";
 
 interface ChatPanelProps {
   workflowId: string;
@@ -197,6 +197,10 @@ interface NodeDisplayProps {
     nodeType: NodeType;
     nodeName: string;
     status: "loading" | "error" | "complete";
+    contentType?: "text" | "reasoning" | "tool-call" | "tool-result";
+    reasoning?: string;
+    toolCall?: { name: string };
+    toolResult?: { name: string; result: any };
     output?: any;
     error?: any;
   };
@@ -212,11 +216,8 @@ export const NodeDisplay = ({
   const nodeConfig = getNodeConfig(data.nodeType);
   if (!nodeConfig) return null;
   const Icon = nodeConfig.icon;
-  const status = data.status;
-  const output = data.output;
+  const { status, contentType, output, toolCall, toolResult, error } = data;
 
-  const outputText =
-    typeof output === "string" ? output : JSON.stringify(output, null, 2);
   return (
     <div key={`${messageId}-node-${partIndex}`}>
       {/* Header */}
@@ -237,16 +238,32 @@ export const NodeDisplay = ({
       </div>
       {/* Content */}
       <div>
-        {output && (
+        {(toolCall || toolResult) && (
+          <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border flex items-center gap-2">
+            {toolResult ? (
+              <>
+                <Check className="size-4 text-green-600" />
+                <span className="text-sm">Used {toolResult.name}</span>
+              </>
+            ) : (
+              <TextShimmerLoader text={`Calling ${toolCall?.name}...`} />
+            )}
+          </div>
+        )}
+        {output && contentType === "text" && (
           <div className="px-3 py-2">
-            <MessageResponse>{outputText}</MessageResponse>
+            <MessageResponse>
+              {typeof output === "string"
+                ? output
+                : JSON.stringify(output, null, 2)}
+            </MessageResponse>
           </div>
         )}
 
         {status === "error" && (
           <div className="p-3 bg-destructive/10 text-destructive rounded-md">
             {JSON.stringify({
-              error: data.error,
+              error,
             })}
           </div>
         )}

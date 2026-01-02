@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node } from "@xyflow/react";
+import { tavilySearch, tavilyExtract } from "@tavily/ai-sdk";
 import { convertJsonSchemaToZod } from "zod-from-json-schema";
-import { convertToModelMessages, Output, streamText } from "ai";
+import { convertToModelMessages, Output, stepCountIs, streamText } from "ai";
 import { openrouter } from "@/lib/openrouter";
 import { replaceVariables } from "@/lib/helper";
 import { MODELS } from "@/lib/workflow/constants";
@@ -17,11 +18,27 @@ export async function executeAgent(
     outputFormat = "text",
     responseSchema,
     model: selectedModel,
+    tools: selectedTools = [],
   } = node.data as any;
   const model = selectedModel || MODELS[0].value;
 
   const systemPrompt = replaceVariables(instructions, outputs);
   const modelMessages = await convertToModelMessages(history);
+
+  // Build tools object
+  const tools: Record<string, any> = {};
+
+  for (const toolId of selectedTools) {
+    if (toolId === "webSearch") {
+      tools.webSearch = tavilySearch({
+        apiKey: process.env.TAVILY_API_KEY,
+      });
+    } else if (toolId === "webExtract") {
+      tools.webExtract = tavilyExtract({
+        apiKey: process.env.TAVILY_API_KEY,
+      });
+    }
+  }
 
   //
   // 🔹 Only build Zod schema for JSON output
@@ -39,7 +56,8 @@ export async function executeAgent(
     model: openrouter.chat(model),
     system: systemPrompt,
     messages: modelMessages,
-    //tools: node.data.tools || {},
+    tools: Object.keys(tools).length > 0 ? tools : undefined,
+    stopWhen: stepCountIs(3),
     ...jsonOutput,
   });
 
@@ -65,20 +83,76 @@ export async function executeAgent(
   }
 
   let fullText = "";
-  for await (const chunk of result.textStream) {
-    fullText += chunk;
+  // for await (const chunk of result.textStream) {
+  //   fullText += chunk;
 
-    await channel.emit("workflow.chunk", {
-      type: "data-workflow-node",
-      id: node.id,
-      data: {
-        id: node.id,
-        nodeType: node.type,
-        nodeName: node.data?.name,
-        status: "loading",
-        output: fullText,
-      },
-    });
+  //   await channel.emit("workflow.chunk", {
+  //     type: "data-workflow-node",
+  //     id: node.id,
+  //     data: {
+  //       id: node.id,
+  //       nodeType: node.type,
+  //       nodeName: node.data?.name,
+  //       status: "loading",
+  //       output: fullText,
+  //     },
+  //   });
+  // }
+
+  // Stream all events
+  for await (const chunk of result.fullStream) {
+    switch (chunk.type) {
+      case "text-delta":
+        fullText += chunk.text;
+        await channel.emit("workflow.chunk", {
+          type: "data-workflow-node",
+          id: node.id,
+          data: {
+            id: node.id,
+            nodeType: node.type,
+            nodeName: node.data?.name,
+            status: "loading",
+            contentType: "text",
+            output: fullText,
+          },
+        });
+        break;
+
+      case "tool-call":
+        await channel.emit("workflow.chunk", {
+          type: "data-workflow-node",
+          id: node.id,
+          data: {
+            id: node.id,
+            nodeType: node.type,
+            nodeName: node.data?.name,
+            status: "loading",
+            contentType: "tool-call",
+            toolCall: {
+              name: chunk.toolName,
+            },
+          },
+        });
+        break;
+
+      case "tool-result":
+        await channel.emit("workflow.chunk", {
+          type: "data-workflow-node",
+          id: node.id,
+          data: {
+            id: node.id,
+            nodeType: node.type,
+            nodeName: node.data?.name,
+            status: "loading",
+            contentType: "tool-result",
+            toolResult: {
+              name: chunk.toolName,
+              result: chunk.output,
+            },
+          },
+        });
+        break;
+    }
   }
 
   return { output: { text: fullText } };
