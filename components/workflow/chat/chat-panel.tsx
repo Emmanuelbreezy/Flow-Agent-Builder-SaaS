@@ -44,6 +44,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { nanoid } from "nanoid";
 import { createWorkflowTransport } from "@/lib/transport";
 import { cn } from "@/lib/utils";
+import { Loader } from "@/components/ui/loader";
 
 interface ChatPanelProps {
   workflowId: string;
@@ -101,16 +102,16 @@ export const ChatPanel = ({
                           </MessageResponse>
                         );
                       }
-                      case "data-workflow-start": {
-                        return (
-                          <div
-                            key={`${message.id}-workflow-start-${i}`}
-                            className="text-sm text-muted-foreground"
-                          >
-                            🚀 Starting workflow execution...
-                          </div>
-                        );
-                      }
+                      // case "data-workflow-start": {
+                      //   return (
+                      //     <div
+                      //       key={`${message.id}-workflow-start-${i}`}
+                      //       className="text-sm text-muted-foreground"
+                      //     >
+                      //       🚀 Starting workflow execution...
+                      //     </div>
+                      //   );
+                      // }
 
                       case "data-workflow-node": {
                         const data = part.data as {
@@ -141,11 +142,8 @@ export const ChatPanel = ({
             ))}
 
             {isLoading ? (
-              <div className="flex justify-start">
-                <div className="flex items-center gap-2 font-mono">
-                  <Spinner className="size-3.5" />
-                  Start
-                </div>
+              <div className="px-2">
+                <Loader variant={"dots"} size={"md"} />
               </div>
             ) : null}
           </ConversationContent>
@@ -153,7 +151,7 @@ export const ChatPanel = ({
         </Conversation>
       ) : (
         // <div className="flex-[1.3] flex flex-col items-center justify-center ">
-        <div className="flex-1 flex flex-col items-center justify-center overflow-y-auto">
+        <div className="flex-[1.3] flex flex-col items-center justify-center">
           <Empty className="border-0">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -170,7 +168,7 @@ export const ChatPanel = ({
 
       {/* Input */}
       {/* <div className="shrink-0 flex-[0.4] w-full px-4 pt-2  bg-background"> */}
-      <div className="shrink-0 w-full flex-[0.4] px-4 pt-2 pb-4 bg-background border-t">
+      <div className="shrink-0 w-full flex-[0.4] px-4 py-4 bg-background border-t">
         <PromptInput className="shadow-md rounded-xl!" onSubmit={handleSubmit}>
           <PromptInputBody>
             <PromptInputTextarea
