@@ -46,6 +46,7 @@ export const HttpSettings = ({ id, data }: HttpSettingsProps) => {
   const url = (data?.url as string) || "";
   const headers = (data?.headers as Record<string, string>) || {};
   const body = (data?.body as string) || "";
+  const formattedBody = JSON.stringify(body || "{}", null, 2);
 
   const handleChange = (key: string, value: any) => {
     updateNodeData(id, {
@@ -119,16 +120,17 @@ export const HttpSettings = ({ id, data }: HttpSettingsProps) => {
       </div>
 
       {/* URL Input */}
-      <div className="space-y-2">
+      <div className=" space-y-2">
         <Label>URL</Label>
         <MentionInputComponent
           nodeId={id}
           value={url}
+          multiline={false}
           onChange={(value) => handleChange("url", value)}
           placeholder="https://api.example.com/endpoint"
         />
         <p className="text-xs text-muted-foreground">
-          Supports variables with {`{{nodeName.outputKey}}`}
+          Supports variables with {`{{prevNodeId.output.key}}`}
         </p>
       </div>
 
@@ -186,10 +188,10 @@ export const HttpSettings = ({ id, data }: HttpSettingsProps) => {
             value={body}
             onChange={(e) => handleChange("body", e.target.value)}
             placeholder='{"key": "value"}'
-            className="min-h-32 font-mono text-xs"
+            className="min-h-32"
           />
           <p className="text-xs text-muted-foreground">
-            Supports variables with {`{{nodeName.outputKey}}`}
+            Supports variables with {`{{prevNodeId.output.key}}`}
           </p>
         </div>
       )}
@@ -198,17 +200,9 @@ export const HttpSettings = ({ id, data }: HttpSettingsProps) => {
       <div className="space-y-2">
         <Label className="font-medium">Available Outputs</Label>
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">
-            Access response data in other nodes:
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">output.status</Badge>
-            <Badge variant="outline">output.headers</Badge>
-            <Badge variant="outline">output.body</Badge>
-          </div>
           <p className="text-xs text-muted-foreground mt-2">
             For nested fields:{" "}
-            <code className="bg-muted px-1 rounded text-xs">{`{{nodeName.body.field}}`}</code>
+            <code className="bg-muted px-1 rounded text-xs">{`{{${id}.output.body.field}}`}</code>
           </p>
         </div>
       </div>

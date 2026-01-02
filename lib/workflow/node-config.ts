@@ -106,7 +106,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
       headers: {},
       body: {},
     },
-    outputs: ["output.status", "output.headers", "output.body"],
+    outputs: ["output.body"],
   },
 
   [NodeTypeEnum.END]: {

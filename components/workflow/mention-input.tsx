@@ -77,7 +77,7 @@ export function MentionInputComponent({
     "disabled:cursor-not-allowed disabled:opacity-50",
     multiline ? "min-h-18" : "h-9",
     "p-2",
-    "max-h-64!",
+    "max-h-64! ",
     className
   );
 
@@ -91,7 +91,7 @@ export function MentionInputComponent({
       zIndex: 999,
       color: "inherit",
       backgroundColor: "transparent",
-      maxHeight: "300px",
+      //maxHeight: multiline ? "300px" : "none",
     },
     input: {
       background: "transparent",
@@ -120,7 +120,7 @@ export function MentionInputComponent({
           "[&_textarea]:text-base [&_textarea]:md:text-sm",
           "[&_textarea]:placeholder:text-muted-foreground",
           "[&_textarea]:w-full [&_textarea]:outline-none",
-          className
+          "[&_textarea]:max-h-60 [&_textarea]:overflow-y-auto!"
         )}
         allowSuggestionsAboveCursor
         forceSuggestionsAboveCursor
