@@ -13,7 +13,7 @@ const NODE_LIST = [
   },
   {
     group: "Logic",
-    items: [NodeTypeEnum.IF_ELSE, NodeTypeEnum.USER_APPROVAL],
+    items: [NodeTypeEnum.IF_ELSE],
   },
   {
     group: "Network",

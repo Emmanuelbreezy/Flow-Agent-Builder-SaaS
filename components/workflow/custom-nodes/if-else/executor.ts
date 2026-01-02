@@ -16,18 +16,15 @@ export async function executeIfElse(
 ): Promise<ExecutorResultType> {
   const { outputs } = context;
   const conditions = (node.data.conditions as Condition[]) || [];
-  console.log(conditions, "conditons");
-  console.log(outputs, "outputs");
-
-  if (!Array.isArray(conditions)) {
-    throw new Error("Conditions must be an array");
-  }
 
   function needsQuoting(val: string) {
     // Checks if val does not already start and end with a quote
     return isNaN(Number(val)) && !/^["'].*["']$/.test(val);
   }
 
+  if (!Array.isArray(conditions)) {
+    throw new Error("Conditions must be an array");
+  }
   for (let i = 0; i < conditions.length; i++) {
     const condition = conditions[i];
     if (
@@ -50,15 +47,11 @@ export async function executeIfElse(
     // Merge variable and value expressions
     const expr = `${variableExpr} ${condition.operator} ${valueExpr}`;
 
-    console.log(expr, "resolvedCondition");
-
     try {
       // Evaluate condition
       // Use expr-eval instead of eval
       const parser = new Parser();
       const result = parser.evaluate(expr);
-
-      console.log(result, "conditons result");
 
       if (result) {
         return {

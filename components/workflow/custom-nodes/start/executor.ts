@@ -8,7 +8,7 @@ export async function executeStart(
   // Start node just passes through the input
   return {
     output: {
-      input: context.outputs[node.id]?.input,
+      input: context.outputs[node.id]?.input || "",
     },
   };
 }

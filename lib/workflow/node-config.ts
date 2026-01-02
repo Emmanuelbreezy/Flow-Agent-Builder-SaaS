@@ -13,18 +13,18 @@ import { executeStart } from "@/components/workflow/custom-nodes/start/executor"
 import { executeAgent } from "@/components/workflow/custom-nodes/agent/executor";
 import { executeHttp } from "@/components/workflow/custom-nodes/http/executor";
 import { executeIfElse } from "@/components/workflow/custom-nodes/if-else/executor";
-import { executeUserApproval } from "@/components/workflow/custom-nodes/user-approval/executor";
+// import { executeUserApproval } from "@/components/workflow/custom-nodes/user-approval/executor";
 import { executeEnd } from "@/components/workflow/custom-nodes/end/executor";
 import { MODELS } from "./constants";
 
 export const NodeTypeEnum = {
   START: "start",
   AGENT: "agent",
-  USER_APPROVAL: "user_approval",
   IF_ELSE: "if_else",
   END: "end",
   HTTP: "http",
   COMMENT: "comment",
+  //USER_APPROVAL: "user_approval",
 } as const;
 
 export type NodeType = (typeof NodeTypeEnum)[keyof typeof NodeTypeEnum];
@@ -34,8 +34,8 @@ export const NODE_EXECUTORS = {
   [NodeTypeEnum.AGENT]: executeAgent,
   [NodeTypeEnum.IF_ELSE]: executeIfElse,
   [NodeTypeEnum.HTTP]: executeHttp,
-  [NodeTypeEnum.USER_APPROVAL]: executeUserApproval,
   [NodeTypeEnum.END]: executeEnd,
+  //[NodeTypeEnum.USER_APPROVAL]: executeUserApproval,
 };
 
 // Next
@@ -95,19 +95,6 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
     outputs: ["output.result"],
   },
 
-  [NodeTypeEnum.USER_APPROVAL]: {
-    type: NodeTypeEnum.USER_APPROVAL,
-    label: "User Approval",
-    color: "bg-amber-400",
-    icon: UserCheck,
-    inputs: {
-      name: "User Approval",
-      message: "",
-      options: ["Approve", "Reject"],
-    },
-    outputs: ["output.response"],
-  },
-
   [NodeTypeEnum.HTTP]: {
     type: NodeTypeEnum.HTTP,
     label: "HTTP",
@@ -143,6 +130,19 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
     },
     outputs: [],
   },
+
+  // [NodeTypeEnum.USER_APPROVAL]: {
+  //   type: NodeTypeEnum.USER_APPROVAL,
+  //   label: "User Approval",
+  //   color: "bg-amber-400",
+  //   icon: UserCheck,
+  //   inputs: {
+  //     name: "User Approval",
+  //     message: "",
+  //     options: ["Approve", "Reject"],
+  //   },
+  //   outputs: ["output.response"],
+  // },
 } as const;
 
 export const getNodeConfig = (type: NodeType) => {

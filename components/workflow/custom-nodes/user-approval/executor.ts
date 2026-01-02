@@ -1,18 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ExecutorContextType } from "@/types/workflow";
 import { Node } from "@xyflow/react";
-import { realtime } from "@/lib/realtime";
 
 export async function executeUserApproval(
   node: Node,
   context: ExecutorContextType
-): Promise<{ output: any }> {
-  const { channel, workflowContext, workflowRunId } = context;
+): Promise<{
+  output: {
+    response: string;
+    approved: boolean;
+    selectedBranch: string;
+  };
+}> {
+  const { channel, workflowRunId } = context;
   const message = (node.data?.message as string) || "Do you want to proceed?";
-  const eventId = `approval-${node.id}-${Date.now()}`;
-  const realtimeChannel = realtime.channel(workflowRunId);
+  const eventId = `approval-${workflowRunId}`;
+  console.log("initial-loading:", eventId);
 
-  // Emit loading state
   await channel.emit("workflow.chunk", {
     type: "data-workflow-node",
     id: node.id,
@@ -23,40 +26,66 @@ export async function executeUserApproval(
       status: "loading",
       state: "approval-requested",
       output: { message },
+      eventId,
     },
   });
 
-  // Wait for user approval via workflow notify
-  // Notify Realtime + Wait for approval
-  const [{ eventData, timeout }] = await Promise.all([
-    workflowContext!.waitForEvent("approval-response", eventId, {
-      timeout: "10m",
-    }) as any,
+  // const [{ eventData, timeout }] = await Promise.all([
+  //   // Wait for approval event
+  //   ctx.waitForEvent<{ approved: boolean }>("wait-for-approval", eventId, {
+  //     timeout: "10m",
+  //   }),
+  //   // Notify frontend that we're waiting
+  //   ctx.run("notify-waiting", async () => {
+  //     await channel.emit("workflow.chunk", {
+  //       type: "data-workflow-node",
+  //       id: node.id,
+  //       data: {
+  //         id: node.id,
+  //         nodeType: node.type,
+  //         nodeName: node.data?.name,
+  //         status: "loading",
+  //         state: "approval-requested",
+  //         output: { message },
+  //         eventId,
+  //       },
+  //     });
+  //   }),
+  // ]);
 
-    workflowContext!.run("notify-waiting", () =>
-      realtimeChannel.emit("workflow.waitingForInput", {
-        eventId,
-        nodeId: node.id,
-        message,
-      })
-    ),
-  ]);
+  // Handle timeout
+  // if (timeout) {
+  //   await channel.emit("workflow.chunk", {
+  //     type: "data-workflow-node",
+  //     id: node.id,
+  //     data: {
+  //       id: node.id,
+  //       nodeType: node.type,
+  //       nodeName: node.data?.name,
+  //       status: "complete",
+  //       state: "approval-timeout",
+  //       output: {
+  //         message,
+  //         response: "Rejected (timeout)",
+  //       },
+  //     },
+  //   });
+  //   return {
+  //     output: {
+  //       response: "Rejected",
+  //       approved: false,
+  //       selectedBranch: "option-1",
+  //     },
+  //   };
+  // }
 
-  if (timeout) {
-    console.error("Approval request timed out");
-    throw new Error("Approval request timed out");
-  }
+  // const eventData = await ctx.waitForEvent<{ approved: boolean }>("wait-for-approval", eventId);
 
-  // Emit resolved
-  await workflowContext!.run("input-resolved", () =>
-    realtimeChannel.emit("workflow.inputResolved", {
-      eventId,
-      approved: eventData.approved,
-    })
-  );
+  const eventData = { approved: true };
 
-  // Emit completion to chat
-  await channel.emit("workflow.chunk", {
+  console.log("input-resolved - Approval:", eventId);
+  // Notify that input was resolved
+  channel.emit("workflow.chunk", {
     type: "data-workflow-node",
     id: node.id,
     data: {
@@ -68,13 +97,13 @@ export async function executeUserApproval(
       output: {
         message,
         response: eventData.approved ? "Approved" : "Rejected",
-      },
-      approval: {
-        id: node.id,
         approved: eventData.approved,
       },
     },
   });
+
+  // // Emit completion
+  console.log("inside-final-complete:-----", eventData);
 
   return {
     output: {
@@ -85,99 +114,108 @@ export async function executeUserApproval(
   };
 }
 
-// import { ExecutorContextType } from "@/types/workflow";
-// import { Node } from "@xyflow/react";
+// // import { ExecutorContextType } from "@/types/workflow";
+// // import { Node } from "@xyflow/react";
 
-// export async function executeUserApproval(
-//   node: Node,
-//   context: ExecutorContextType
-// ): Promise<{ output: any }> {
-//   const { channel } = context;
-//   const message = node.data?.message || "Do you want to proceed?";
-//   const eventId = `approval-${node.id}-${Date.now()}`;
+// // export async function executeUserApproval(
+// //   node: Node,
+// //   context: ExecutorContextType
+// // ): Promise<{
+// //   output: {
+// //     response: string;
+// //     approved: boolean;
+// //     selectedBranch: string;
+// //   };
+// // }> {
+// //   const { channel, workflowContext } = context;
+// //   const message = (node.data?.message as string) || "Do you want to proceed?";
+// //   const eventId = `approval-${node.id}-${Date.now()}`;
 
-//   try {
-//     // Emit waiting for input event
-//     await channel.emit("workflow.chunk", {
-//       chunk: {
-//         type: "data-workflow-node",
-//         data: {
-//           id: node.id,
-//           nodeType: node.type,
-//           nodeName: node.data?.name,
-//           status: "loading",
-//           state: "approval-requested",
-//           output: {
-//             message,
-//           },
-//         },
-//       },
-//     });
+// //   // Emit loading state
+// //   await channel.emit("workflow.chunk", {
+// //     type: "data-workflow-node",
+// //     id: node.id,
+// //     data: {
+// //       id: node.id,
+// //       nodeType: node.type,
+// //       nodeName: node.data?.name,
+// //       status: "loading",
+// //       state: "approval-requested",
+// //       output: { message },
+// //     },
+// //   });
 
-//     // Wait for user approval
-//     const [{ eventData, timeout }] = await Promise.all([
-//       context.channel.waitForEvent("approval-response", eventId, {
-//         timeout: "5m",
-//       }) as Promise<{ eventData: { approved: boolean }; timeout: boolean }>,
-//       //
-//       context.channel.emit("workflow.chunk", {
-//         chunk: {
-//           type: "workflow.waitingForInput",
-//           data: {
-//             eventId,
-//             nodeId: node.id,
-//             message,
-//           },
-//         },
-//       }),
-//     ]);
+// //   // Notify via workflowContext.run
+// //   await workflowContext!.run("notify-waiting", async () => {
+// //     await channel.emit("workflow.waitingForInput", {
+// //       eventId,
+// //       nodeId: node.id,
+// //       message,
+// //     });
+// //   });
 
-//     // Handle timeout
-//     if (timeout) {
-//       throw new Error("Approval request timed out");
-//     }
+// //   // Wait for user approval
+// //   const { eventData, timeout } = await workflowContext!.waitForEvent<{
+// //     approved: boolean;
+// //   }>("wait-for-approval", eventId, { timeout: "10m" });
 
-//     // Emit approval resolved
-//     await context.channel.emit("workflow.chunk", {
-//       chunk: {
-//         type: "workflow.inputResolved",
-//         data: {
-//           eventId,
-//           approved: eventData.approved,
-//         },
-//       },
-//     });
+// //   // Handle timeout
+// //   if (timeout) {
+// //     await channel.emit("workflow.chunk", {
+// //       type: "data-workflow-node",
+// //       id: node.id,
+// //       data: {
+// //         id: node.id,
+// //         nodeType: node.type,
+// //         nodeName: node.data?.name,
+// //         status: "complete",
+// //         state: "approval-timeout",
+// //         output: {
+// //           message,
+// //           response: "Rejected (timeout)",
+// //         },
+// //       },
+// //     });
 
-//     // Emit completion
-//     await context.channel.emit("workflow.chunk", {
-//       chunk: {
-//         type: "data-workflow-node",
-//         data: {
-//           id: node.id,
-//           nodeType: node.type,
-//           nodeName: node.data?.name,
-//           status: "complete",
-//           state: "approval-responded",
-//           output: {
-//             message,
-//             response: eventData.approved ? "Approved" : "Rejected",
-//           },
-//           approval: {
-//             id: node.id,
-//             approved: eventData.approved,
-//           },
-//         },
-//       },
-//     });
+// //     return {
+// //       output: {
+// //         response: "Rejected (timeout)",
+// //         approved: false,
+// //         selectedBranch: "option-1",
+// //       },
+// //     };
+// //   }
 
-//     return {
-//       output: {
-//         approved: eventData.approved,
-//         selectedBranch: eventData.approved ? "approve" : "reject",
-//       },
-//     };
-//   } catch (error) {
-//     console.error("User approval error:", error);
-//     throw error;
-//   }
-// }
+// //   // Emit resolved
+// //   await workflowContext!.run("input-resolved", async () => {
+// //     await channel.emit("workflow.inputResolved", {
+// //       eventId,
+// //       approved: eventData.approved,
+// //     });
+// //   });
+
+// //   // Emit completion
+// //   await channel.emit("workflow.chunk", {
+// //     type: "data-workflow-node",
+// //     id: node.id,
+// //     data: {
+// //       id: node.id,
+// //       nodeType: node.type,
+// //       nodeName: node.data?.name,
+// //       status: "complete",
+// //       state: "approval-responded",
+// //       output: {
+// //         message,
+// //         response: eventData.approved ? "Approved" : "Rejected",
+// //       },
+// //     },
+// //   });
+
+// //   return {
+// //     output: {
+// //       response: eventData.approved ? "Approved" : "Rejected",
+// //       approved: eventData.approved,
+// //       selectedBranch: eventData.approved ? "option-0" : "option-1",
+// //     },
+// //   };
+// // }

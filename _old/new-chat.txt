@@ -1,0 +1,242 @@
+import { realtime } from "@/lib/realtime";
+import { serve } from "@upstash/workflow/nextjs";
+import { getNextNodes, topologicalSort } from "@/lib/workflow/execute-workflow";
+import { Node, Edge } from "@xyflow/react";
+import { UIMessage } from "ai";
+import prisma from "@/lib/prisma";
+import {
+  getNodeExecutor,
+  NodeType,
+  NodeTypeEnum,
+} from "@/lib/workflow/node-config";
+import { ExecutorContextType } from "@/types/workflow";
+
+export const GET = async (req: Request) => {
+  const { searchParams } = new URL(req.url);
+
+  const id = searchParams.get("id");
+  if (!id) return new Response("ID is required.");
+  console.log(id, "SSE chat id");
+
+  const channel = realtime.channel(id);
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      await channel.subscribe({
+        events: ["workflow.chunk"],
+        history: true, // <-- This streams both history and new events!
+        onData({ event, data, channel }) {
+          console.log(data, "data", "data");
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
+          );
+          if (data.type === "finish") controller.close();
+        },
+      });
+
+      req.signal.addEventListener("abort", () => {
+        controller.close();
+      });
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+    },
+  });
+};
+
+export const { POST } = serve(async (ctx) => {
+  const { workflowId, messages } = ctx.requestPayload as {
+    workflowId: string;
+    id: string;
+    messages: UIMessage[];
+  };
+  const workflowRunId = ctx.workflowRunId;
+  console.log(ctx.workflowRunId, "workflowContext .workflowRunId");
+
+  console.log("- -------------- -------   ");
+
+  const channel = realtime.channel(workflowRunId);
+  const message = messages[messages.length - 1];
+  const userInput =
+    message.role === "user" && message.parts[0].type === "text"
+      ? message.parts[0].text
+      : "";
+
+  const { sortedNodes, nodes, edges } = await ctx.run(
+    "fetch-database",
+    async () => {
+      const workflowData = await prisma.workflow.findUnique({
+        where: { id: workflowId },
+      });
+      if (!workflowData) throw new Error("Workflow not found");
+      const obj = JSON.parse(workflowData.flowObject);
+      const nodes = obj.nodes as Node[];
+      const edges = obj.edges as Edge[];
+      const sortedNodes = topologicalSort(nodes, edges);
+      return { sortedNodes, nodes, edges };
+    }
+  );
+
+  const startNode = nodes.find((n) => n.type === NodeTypeEnum.START);
+  if (!startNode) throw new Error("No START node");
+
+  // await channel.emit("workflow.chunk", {
+  //   type: "data-workflow-start",
+  //   data: {
+  //     id: startNode.id,
+  //     nodeType: startNode.type,
+  //     message: `Starting workflow execution...`,
+  //   },
+  //   transient: true, // This chunk is transient and won't be stored in history
+  // });
+
+  const context: ExecutorContextType = {
+    outputs: {
+      [startNode.id]: { input: userInput },
+    },
+    history: messages || [],
+    workflowRunId,
+    channel,
+    ctx,
+  };
+  // Track which nodes have been executed
+  const nodesToExecute = new Set<string>([startNode.id]);
+
+  // Execute nodes in topological order
+  for (let i = 0; i < sortedNodes.length; i++) {
+    const node = sortedNodes[i];
+    // Skip if node shouldn't be executed yet (conditional branching)
+
+    if (!nodesToExecute.has(node.id)) {
+      continue;
+    }
+    await ctx.run(`execute-node-${i}`, async () => {
+      try {
+        // ✅ Wrap each node execution in a unique step name
+        const executor = getNodeExecutor(node.type as NodeType);
+
+        console.log(`Executing ${node.id} - ${node.data?.name}`);
+        // Emit loading state
+        await channel.emit("workflow.chunk", {
+          type: "data-workflow-node",
+          id: node.id,
+          data: {
+            id: node.id,
+            nodeType: node.type,
+            nodeName: node.data?.name,
+            status: "loading",
+          },
+        });
+        // Execute node
+        const result = await executor(node, context);
+
+        // Store output
+        if (node.type !== NodeTypeEnum.START) {
+          const outputResult =
+            node.type === NodeTypeEnum.AGENT ? result : result.output;
+          context.outputs[node.id] = outputResult;
+        }
+
+        // Emit complete state
+        await channel.emit("workflow.chunk", {
+          type: "data-workflow-node",
+          id: node.id,
+          data: {
+            id: node.id,
+            nodeType: node.type,
+            nodeName: node.data?.name,
+            output: result.output?.text || result.output,
+            status: "complete",
+          },
+        });
+
+        // Handle END node
+        if (node.type === NodeTypeEnum.END) {
+          await channel.emit("workflow.chunk", {
+            type: "finish",
+            finishReason: "stop",
+          });
+          return {
+            success: true,
+            outputs: context.outputs,
+            //executedNodes: Array.from(executedNodes),
+          };
+        }
+
+        // Determine next nodes to execute
+        const nextNodeIds = getNextNodes(node.id, edges, context);
+
+        // If no next nodes and not END node, workflow stops (disconnected)
+        if (nextNodeIds.length === 0) {
+          console.log(`No next nodes found for ${node.id}`);
+          await channel.emit("workflow.chunk", {
+            type: "finish",
+            finishReason: "stop",
+          });
+
+          return {
+            success: false,
+            output: "Workflow stopped: disconnected nodes",
+          };
+        }
+        // Add next nodes to execution queue
+        nextNodeIds.forEach((id) => nodesToExecute.add(id));
+      } catch (error) {
+        console.error("Error executing node:", error);
+      }
+    });
+  }
+
+  // If no END node was reached
+  await channel.emit("workflow.chunk", {
+    type: "finish",
+    finishReason: "stop",
+  });
+
+  return {
+    success: true,
+    output: "",
+    outputs: context.outputs,
+  };
+});
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+// await ctx.run("workflow-execution", async () => {
+//   const workflowData = await prisma.workflow.findUnique({
+//     where: { id: workflowId },
+//   });
+//   if (!workflowData) throw new Error("Workflow not found");
+//   const obj = JSON.parse(workflowData.flowObject);
+//   const nodes = obj.nodes as Node[];
+//   const edges = obj.edges as Edge[];
+
+//   console.log(nodes, edges, "nodes, edges");
+
+//   // const result = await executeWorkflow(
+//   //   nodes,
+//   //   edges,
+//   //   userInput,
+//   //   messages,
+//   //   channel,
+//   //   workflowRunId
+//   // );
+// });

@@ -3,7 +3,6 @@ import { Node } from "@xyflow/react";
 import { convertJsonSchemaToZod } from "zod-from-json-schema";
 import { convertToModelMessages, Output, streamText } from "ai";
 import { openrouter } from "@/lib/openrouter";
-//import { nanoid } from "nanoid";
 import { replaceVariables } from "@/lib/helper";
 import { MODELS } from "@/lib/workflow/constants";
 import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
@@ -19,11 +18,12 @@ export async function executeAgent(
     responseSchema,
     model: selectedModel,
   } = node.data as any;
-
   const model = selectedModel || MODELS[0].value;
 
   const systemPrompt = replaceVariables(instructions, outputs);
   const modelMessages = await convertToModelMessages(history);
+
+  //
   // 🔹 Only build Zod schema for JSON output
   const jsonOutput =
     outputFormat === "json" && responseSchema
@@ -66,7 +66,6 @@ export async function executeAgent(
 
   let fullText = "";
   for await (const chunk of result.textStream) {
-    console.log(chunk, "chunk");
     fullText += chunk;
 
     await channel.emit("workflow.chunk", {
@@ -84,6 +83,16 @@ export async function executeAgent(
 
   return { output: { text: fullText } };
 }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 // const stream = result.toUIMessageStream({
 //   generateMessageId: () => crypto.randomUUID(),

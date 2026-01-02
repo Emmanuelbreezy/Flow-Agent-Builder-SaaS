@@ -120,18 +120,9 @@ export const ChatPanel = ({
                           status: "loading" | "complete";
                           state: "approval-requested" | "approval-responded";
                           output?: any;
+                          eventId?: string;
                         };
-                        if (
-                          data.nodeType === "user_approval" &&
-                          data.state === "approval-requested"
-                        ) {
-                          return (
-                            <UserApproval
-                              key={`${message.id}-node-${i}`}
-                              data={data}
-                            />
-                          );
-                        }
+
                         return (
                           <NodeDisplay
                             key={`${message.id}-workflow-node-${i}`}
@@ -248,7 +239,6 @@ export const NodeDisplay = ({
         <span className="text-sm font-medium">{data.nodeName}</span>
       </div>
       {/* Content */}
-
       <div>
         {output && (
           <div className="px-3 py-2">
@@ -268,6 +258,18 @@ export const NodeDisplay = ({
   );
 };
 
+///
+//
+//
+//
+//
+//
+///
+///
+//
+//
+//
+//
 interface UserApprovalProps {
   data: {
     id: string;
@@ -276,23 +278,28 @@ interface UserApprovalProps {
     output?: {
       message?: string;
       response?: string;
-    };
-    state: "approval-requested" | "approval-responded";
-    approval?: {
-      id: string;
       approved: boolean;
     };
+    state: "approval-requested" | "approval-responded";
+    eventId?: string;
   };
 }
 
 export const UserApproval = ({ data }: UserApprovalProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedOption, setSelectedOption] = useState<string>("");
 
-  const handleApproval = async (nodeId: string, approved: boolean) => {
+  const handleApproval = async (approved: boolean) => {
+    if (!data.eventId) return;
+    if (approved) {
+      setSelectedOption("approve");
+    } else {
+      setSelectedOption("reject");
+    }
     setIsLoading(true);
     try {
       await axios.post(`/api/upstash/notify`, {
-        eventId: `approval-${nodeId}-${Date.now()}`,
+        eventId: data.eventId,
         eventData: { approved },
       });
     } catch (error) {
@@ -305,7 +312,10 @@ export const UserApproval = ({ data }: UserApprovalProps) => {
   return (
     <>
       <Confirmation
-        approval={{ id: nanoid() }}
+        approval={{
+          id: nanoid(),
+          approved: data.output?.approved,
+        }}
         state={data.state}
         className="my-2"
       >
@@ -322,18 +332,18 @@ export const UserApproval = ({ data }: UserApprovalProps) => {
               <ConfirmationAction
                 variant="default"
                 disabled={isLoading}
-                onClick={() => handleApproval(data.id, true)}
+                onClick={() => handleApproval(true)}
               >
                 Approve
-                {isLoading && <Spinner />}
+                {isLoading && selectedOption === "approve" && <Spinner />}
               </ConfirmationAction>
               <ConfirmationAction
                 variant="outline"
                 disabled={isLoading}
-                onClick={() => handleApproval(data.id, false)}
+                onClick={() => handleApproval(false)}
               >
                 Reject
-                {isLoading && <Spinner />}
+                {isLoading && selectedOption === "reject" && <Spinner />}
               </ConfirmationAction>
             </ConfirmationActions>
           </div>
