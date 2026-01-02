@@ -197,7 +197,6 @@ interface NodeDisplayProps {
     nodeType: NodeType;
     nodeName: string;
     status: "loading" | "error" | "complete";
-    contentType?: "text" | "reasoning" | "tool-call" | "tool-result";
     reasoning?: string;
     toolCall?: { name: string };
     toolResult?: { name: string; result: any };
@@ -216,8 +215,9 @@ export const NodeDisplay = ({
   const nodeConfig = getNodeConfig(data.nodeType);
   if (!nodeConfig) return null;
   const Icon = nodeConfig.icon;
-  const { status, contentType, output, toolCall, toolResult, error } = data;
+  const { status, output, toolCall, toolResult, error } = data;
 
+  console.log(toolResult, "toolResult");
   return (
     <div key={`${messageId}-node-${partIndex}`}>
       {/* Header */}
@@ -238,7 +238,7 @@ export const NodeDisplay = ({
       </div>
       {/* Content */}
       <div>
-        {(toolCall || toolResult) && (
+        {toolCall || toolResult ? (
           <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border flex items-center gap-2">
             {toolResult ? (
               <>
@@ -249,8 +249,8 @@ export const NodeDisplay = ({
               <TextShimmerLoader text={`Calling ${toolCall?.name}...`} />
             )}
           </div>
-        )}
-        {output && contentType === "text" && (
+        ) : null}
+        {output && (
           <div className="px-3 py-2">
             <MessageResponse>
               {typeof output === "string"

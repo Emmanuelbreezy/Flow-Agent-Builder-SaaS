@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node } from "@xyflow/react";
-import { tavilySearch, tavilyExtract } from "@tavily/ai-sdk";
 import { convertJsonSchemaToZod } from "zod-from-json-schema";
-import { convertToModelMessages, Output, stepCountIs, streamText } from "ai";
-import { openrouter } from "@/lib/openrouter";
+import { convertToModelMessages, Output } from "ai";
 import { replaceVariables } from "@/lib/helper";
 import { MODELS } from "@/lib/workflow/constants";
 import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
+import { streamAgentAction } from "@/app/actions/action";
+
+// Dynamic import for Tavily (server-side only)
 
 export async function executeAgent(
   node: Node,
@@ -23,22 +24,7 @@ export async function executeAgent(
   const model = selectedModel || MODELS[0].value;
 
   const systemPrompt = replaceVariables(instructions, outputs);
-  const modelMessages = await convertToModelMessages(history);
-
-  // Build tools object
-  const tools: Record<string, any> = {};
-
-  for (const toolId of selectedTools) {
-    if (toolId === "webSearch") {
-      tools.webSearch = tavilySearch({
-        apiKey: process.env.TAVILY_API_KEY,
-      });
-    } else if (toolId === "webExtract") {
-      tools.webExtract = tavilyExtract({
-        apiKey: process.env.TAVILY_API_KEY,
-      });
-    }
-  }
+  // Build tools object here
 
   //
   // 🔹 Only build Zod schema for JSON output
@@ -52,13 +38,13 @@ export async function executeAgent(
       : undefined;
 
   // Stream AI response
-  const result = streamText({
-    model: openrouter.chat(model),
-    system: systemPrompt,
-    messages: modelMessages,
-    tools: Object.keys(tools).length > 0 ? tools : undefined,
-    stopWhen: stepCountIs(3),
-    ...jsonOutput,
+
+  const result = await streamAgentAction({
+    model,
+    systemPrompt,
+    history,
+    jsonOutput,
+    selectedTools,
   });
 
   if (outputFormat === "json") {
@@ -112,7 +98,6 @@ export async function executeAgent(
             nodeType: node.type,
             nodeName: node.data?.name,
             status: "loading",
-            contentType: "text",
             output: fullText,
           },
         });
@@ -127,7 +112,6 @@ export async function executeAgent(
             nodeType: node.type,
             nodeName: node.data?.name,
             status: "loading",
-            contentType: "tool-call",
             toolCall: {
               name: chunk.toolName,
             },
@@ -144,10 +128,8 @@ export async function executeAgent(
             nodeType: node.type,
             nodeName: node.data?.name,
             status: "loading",
-            contentType: "tool-result",
             toolResult: {
               name: chunk.toolName,
-              result: chunk.output,
             },
           },
         });
@@ -167,6 +149,14 @@ export async function executeAgent(
 //
 //
 //
+// const result = streamText({
+//   model: openrouter.chat(model),
+//   system: systemPrompt,
+//   messages: modelMessages,
+//   //tools: Object.keys(tools).length > 0 ? tools : undefined,
+//   stopWhen: stepCountIs(3),
+//   ...jsonOutput,
+// });
 
 // const stream = result.toUIMessageStream({
 //   generateMessageId: () => crypto.randomUUID(),

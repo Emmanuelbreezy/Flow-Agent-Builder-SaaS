@@ -99,6 +99,8 @@ export async function executeWorkflow(
     transient: true, // This chunk is transient and won't be stored in history
   });
 
+  //const tools = await getTools(selectedTools);
+
   const context: ExecutorContextType = {
     outputs: {
       [startNode.id]: { input: userInput },
