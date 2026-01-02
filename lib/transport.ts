@@ -27,7 +27,7 @@ export const createWorkflowTransport = ({
       const triggerData = await triggerRes.json();
       const workflowRunId = triggerData.workflowRunId;
 
-      console.log(workflowRunId, "workflowRunId");
+      // console.log(workflowRunId, "workflowRunId");
       // 2. GET to chat endpoint for streaming
       return fetch(`/api/workflow/${workflowId}/chat?id=${workflowRunId}`, {
         method: "GET",

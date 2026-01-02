@@ -9,13 +9,6 @@ export const redis = Redis.fromEnv();
 export const schema = {
   workflow: {
     chunk: z.any() as z.ZodType<UIMessageChunk>,
-    // waitingForInput: z.object({
-    //   eventId: z.string(),
-    //   message: z.string(),
-    // }),
-    // inputResolved: z.object({
-    //   eventId: z.string(),
-    // }),
   },
 };
 

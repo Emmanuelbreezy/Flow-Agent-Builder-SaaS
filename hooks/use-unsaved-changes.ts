@@ -1,14 +1,15 @@
 // lib/hooks/useUnsavedChanges.ts
 import { useMemo, useCallback } from "react";
-import { WorkflowEdgeType, WorkflowNodeType } from "@/types/workflow";
+import { Node, Edge } from "@xyflow/react";
+
 import { useWorkflowStore } from "@/store/workflow-store";
 
 interface UseUnsavedChangesReturn {
   hasUnsavedChanges: boolean;
   //saveChanges: () => void;
   discardChanges: () => {
-    nodes: WorkflowNodeType[];
-    edges: WorkflowEdgeType[];
+    nodes: Node[];
+    edges: Edge[];
   };
 }
 
@@ -16,16 +17,16 @@ export function useUnsavedChanges({
   nodes,
   edges,
 }: {
-  nodes: WorkflowNodeType[];
-  edges: WorkflowEdgeType[];
+  nodes: Node[];
+  edges: Edge[];
 }): UseUnsavedChangesReturn {
   const { savedNodes, savedEdges } = useWorkflowStore();
 
   // Check for changes - only data, ignore position/selection
   const hasUnsavedChanges = useMemo(() => {
-    const nodeData = (list: WorkflowNodeType[]) =>
+    const nodeData = (list: Node[]) =>
       list.map((n) => ({ id: n.id, type: n.type, data: n.data }));
-    const edgeData = (list: WorkflowEdgeType[]) =>
+    const edgeData = (list: Edge[]) =>
       list.map((e) => ({ source: e.source, target: e.target, id: e.id }));
 
     return (
@@ -38,7 +39,6 @@ export function useUnsavedChanges({
   // const saveChanges = useCallback(() => {
   //   setSavedState(nodes, edges);
   // }, [nodes, edges, setSavedState]);
-
   const discardChanges = useCallback(() => {
     return { nodes: savedNodes, edges: savedEdges };
   }, [savedNodes, savedEdges]);
