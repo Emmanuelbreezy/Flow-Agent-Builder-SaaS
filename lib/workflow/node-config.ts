@@ -24,7 +24,7 @@ export const NodeTypeEnum = {
   END: "end",
   HTTP: "http",
   COMMENT: "comment",
-  //USER_APPROVAL: "user_approval",
+  USER_APPROVAL: "user_approval",
 } as const;
 
 export type NodeType = (typeof NodeTypeEnum)[keyof typeof NodeTypeEnum];
@@ -122,7 +122,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
 
   [NodeTypeEnum.COMMENT]: {
     type: NodeTypeEnum.COMMENT,
-    label: "Comment",
+    label: "Note",
     color: "bg-gray-500",
     icon: FileIcon,
     inputs: {
@@ -131,18 +131,18 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
     outputs: [],
   },
 
-  // [NodeTypeEnum.USER_APPROVAL]: {
-  //   type: NodeTypeEnum.USER_APPROVAL,
-  //   label: "User Approval",
-  //   color: "bg-amber-400",
-  //   icon: UserCheck,
-  //   inputs: {
-  //     name: "User Approval",
-  //     message: "",
-  //     options: ["Approve", "Reject"],
-  //   },
-  //   outputs: ["output.response"],
-  // },
+  [NodeTypeEnum.USER_APPROVAL]: {
+    type: NodeTypeEnum.USER_APPROVAL,
+    label: "User Approval",
+    color: "bg-amber-400",
+    icon: UserCheck,
+    inputs: {
+      name: "User Approval",
+      message: "",
+      options: ["Approve", "Reject"],
+    },
+    outputs: ["output.response"],
+  },
 } as const;
 
 export const getNodeConfig = (type: NodeType) => {

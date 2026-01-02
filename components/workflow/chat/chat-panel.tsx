@@ -112,8 +112,7 @@ export const ChatPanel = ({
                       //     </div>
                       //   );
                       // }
-
-                      case "data-workflow-node": {
+                      case "data-workflow-node":
                         const data = part.data as {
                           id: string;
                           nodeType: NodeType;
@@ -132,7 +131,7 @@ export const ChatPanel = ({
                             partIndex={i}
                           />
                         );
-                      }
+
                       default:
                         return null;
                     }

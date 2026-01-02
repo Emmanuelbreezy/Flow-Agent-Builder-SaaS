@@ -23,24 +23,26 @@ type Suggestion = {
 
 interface MentionInputComponentProps {
   value: string;
-  onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
   multiline?: boolean;
   rows?: number;
   showTriggerButton?: boolean;
   nodeId?: string;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
 }
 
 export function MentionInputComponent({
   value,
-  onChange,
   placeholder = "Type {{ to insert variables",
   className,
   multiline = false,
   rows = 4,
   showTriggerButton = true,
   nodeId,
+  onChange,
+  onBlur,
 }: MentionInputComponentProps) {
   const { getVariablesForNode } = useWorkflow();
 
@@ -109,8 +111,8 @@ export function MentionInputComponent({
     <div className={wrapperClass}>
       <MentionsInput
         value={value}
-        // onChange={(_, newValue) => onChange(newValue)}
         onChange={(event) => onChange(event.target.value)}
+        onBlur={onBlur}
         singleLine={!multiline}
         placeholder={placeholder}
         spellCheck="false"

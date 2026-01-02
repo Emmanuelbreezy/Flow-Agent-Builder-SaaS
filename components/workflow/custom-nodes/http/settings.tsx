@@ -29,11 +29,12 @@ interface HttpSettingsProps {
 }
 
 export const HttpSettings = ({ id, data }: HttpSettingsProps) => {
+  const { method = "GET", url = "", headers = {}, body = "" } = data || {};
+
   const { updateNodeData } = useReactFlow();
   const [newHeaderKey, setNewHeaderKey] = useState("");
   const [newHeaderValue, setNewHeaderValue] = useState("");
-
-  const { method = "GET", url = "", headers = {}, body = "" } = data || {};
+  const [bodyValue, setBodyValue] = useState(body);
 
   const handleChange = (key: string, value: any) => {
     updateNodeData(id, { [key]: value });
@@ -121,7 +122,7 @@ export const HttpSettings = ({ id, data }: HttpSettingsProps) => {
             onChange={(e) => setNewHeaderValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddHeader()}
           />
-          <Button onClick={handleAddHeader} size="icon">
+          <Button variant="outline" onClick={handleAddHeader} size="icon">
             <Plus className="size-4" />
           </Button>
         </div>
@@ -132,11 +133,12 @@ export const HttpSettings = ({ id, data }: HttpSettingsProps) => {
         <div className="space-y-2">
           <Label>Body (JSON)</Label>
           <Textarea
-            value={body}
-            onChange={(e) => handleChange("body", e.target.value)}
+            value={bodyValue}
+            onChange={(e) => setBodyValue(e.target.value)}
+            onBlur={() => handleChange("body", bodyValue)}
             placeholder='{"key": "value"}'
             spellCheck={false}
-            className="min-h-32 font-mono text-xs"
+            className="min-h-32"
           />
         </div>
       )}

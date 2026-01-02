@@ -80,11 +80,11 @@ const WorkflowNode = ({
                     <Icon className="size-3.5 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <BaseNodeHeaderTitle className="text-sm pr-1 font-medium!">
+                    <BaseNodeHeaderTitle className="text-sm! pr-1 font-medium!">
                       {label}
                     </BaseNodeHeaderTitle>
                     {subText && (
-                      <p className="text-[11px] text-muted-foreground -mt-0.5 truncate max-w-[80px]">
+                      <p className="text-[11px] text-muted-foreground -mt-0.5 truncate max-w-20">
                         {subText}
                       </p>
                     )}

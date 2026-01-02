@@ -45,9 +45,10 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
   const { updateNodeData } = useReactFlow();
   const [openModel, setOpenModel] = useState(false);
   const [openFormat, setOpenFormat] = useState(false);
-
+  const [instructionValue, setInstructionValue] = useState(
+    data?.instructions || ""
+  );
   const name = (data?.name as string) || "Agent";
-  const instructions = (data?.instructions as string) || "";
   const model = data?.model as string;
   const tools = (data?.tools as string[]) || [];
   const outputFormat = (data?.outputFormat as string) || "text";
@@ -95,11 +96,12 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
           <Label htmlFor="prompt">System Instructions</Label>
           <MentionInputComponent
             nodeId={id}
-            value={instructions}
+            value={instructionValue}
             placeholder="You are a helpful AI assistant..."
             rows={2}
             multiline={true}
-            onChange={(value) => handleChange("instructions", value)}
+            onChange={(value) => setInstructionValue(value)}
+            onBlur={() => handleChange("instructions", instructionValue)}
           />
         </div>
 

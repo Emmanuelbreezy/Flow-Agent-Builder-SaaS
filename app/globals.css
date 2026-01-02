@@ -18,6 +18,11 @@
   max-height: 300px;
 } */
 
+.relative__control {
+  max-height: 200px !important;
+  overflow: hidden !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

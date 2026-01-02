@@ -27,90 +27,76 @@ export function WorkflowHeader({ name }: { name?: string }) {
   };
 
   return (
-    <header className="border-b border-border bg-card">
-      <div className="flex h-14 items-center justify-between px-4">
-        {/* Left section */}
-        <Link className={`flex items-center gap-3 ${zIndex}`} href="/workflow">
-          <Button variant="secondary" size="icon" className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <h1 className="text-sm font-semibold truncate max-w-50">
-              {name || "Untitled Workflow"}
-            </h1>
+    <div className="relative">
+      <header className="w-full bg-transparent absolute top-0 z-50">
+        <div className="flex h-14 items-center justify-between px-4 ">
+          {/* Left section */}
+          <Link
+            className={`flex items-center gap-3 ${zIndex} bg-card py-1 pl-1 pr-4 rounded-lg`}
+            href="/workflow"
+          >
+            <Button variant="secondary" size="icon" className="h-8 w-8">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-semibold truncate max-w-50">
+                {name || "Untitled Workflow"}
+              </h1>
+            </div>
+          </Link>
+
+          {/* Center section - Tabs */}
+          <div className="flex items-center gap-1 rounded-lg bg-muted p-1 mt-1 z-999!">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleSetView(tab.id)}
+                  className={cn(
+                    "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    view === tab.id
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
-        </Link>
 
-        {/* Center section - Tabs */}
-        <div className="flex items-center gap-1 rounded-lg bg-muted p-1 z-999!">
-          {tabs.map((tab) => (
-            <TabButton
-              key={tab.id}
-              active={view === tab.id}
-              onClick={() => handleSetView(tab.id)}
-              icon={tab.icon}
-              label={tab.label}
-            />
-          ))}
+          {/* Right section */}
+          <div className=" flex items-center gap-2 bg-card p-1 rounded-lg">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="ghost" size="icon" className="h-8 w-8" />
+                }
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <span>Duplicate</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive">
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button variant="ghost" size="sm" className="h-8 gap-1.5">
+              <Code className="h-3.5 w-3.5" />
+              Code
+            </Button>
+            <Button size="sm" className={`h-8 ${zIndex}`}>
+              Publish
+            </Button>
+          </div>
         </div>
-
-        {/* Right section */}
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button variant="ghost" size="icon" className="h-8 w-8" />
-              }
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <span>Rename</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <span>Duplicate</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5">
-            <Code className="h-3.5 w-3.5" />
-            Code
-          </Button>
-
-          <Button size="sm" className={`h-8 ${zIndex}`}>
-            Publish
-          </Button>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-interface TabButtonProps {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ElementType;
-  label: string;
-}
-
-function TabButton({ active, onClick, icon: Icon, label }: TabButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-        active
-          ? "bg-background text-foreground shadow-sm"
-          : "text-muted-foreground hover:text-foreground"
-      )}
-    >
-      <Icon className="h-3.5 w-3.5" />
-      {label}
-    </button>
+      </header>
+    </div>
   );
 }

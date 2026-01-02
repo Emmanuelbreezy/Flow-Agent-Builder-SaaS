@@ -13,7 +13,7 @@ const NODE_LIST = [
   },
   {
     group: "Logic",
-    items: [NodeTypeEnum.IF_ELSE],
+    items: [NodeTypeEnum.IF_ELSE, NodeTypeEnum.USER_APPROVAL],
   },
   {
     group: "Network",
@@ -31,7 +31,7 @@ export const NodePanel = ({ disabled }: { disabled?: boolean }) => {
   return (
     <Panel
       position="top-left"
-      className="w-60 h-fit bg-card shadow-xl pb-5 flex flex-col rounded-lg"
+      className="w-60 top-10! h-fit bg-card shadow-xl pb-5 flex flex-col rounded-lg"
     >
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {NODE_LIST.map((group) => (
