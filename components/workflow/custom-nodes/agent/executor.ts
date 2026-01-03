@@ -23,7 +23,7 @@ export async function executeAgent(
   } = node.data as any;
   const model = selectedModel || MODELS[0].value;
 
-  const systemPrompt = replaceVariables(instructions, outputs);
+  const replacedInstructions = replaceVariables(instructions, outputs);
   // Build tools object here
 
   //
@@ -41,7 +41,7 @@ export async function executeAgent(
 
   const result = await streamAgentAction({
     model,
-    systemPrompt,
+    instructions: replacedInstructions,
     history,
     jsonOutput,
     selectedTools,

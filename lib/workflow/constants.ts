@@ -1,4 +1,4 @@
-import { FileTextIcon, GlobeIcon } from "lucide-react";
+import { GlobeIcon } from "lucide-react";
 
 export const TOOL_MODE_ENUM = {
   SELECT: "select",
@@ -25,12 +25,5 @@ export const TOOLS = [
     name: "Web Search",
     description: "Search the web",
     icon: GlobeIcon,
-  },
-  {
-    id: "webExtract",
-    type: "native",
-    name: "Extract",
-    description: "Extract information from text",
-    icon: FileTextIcon,
   },
 ];

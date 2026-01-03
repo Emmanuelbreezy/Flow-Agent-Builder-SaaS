@@ -11,12 +11,10 @@ import {
 } from "@/components/ui/sheet";
 import { useWorkflow } from "@/context/workflow-context";
 import { ChatPanel } from "./chat-panel";
-import type { UIMessage } from "@ai-sdk/react";
 
 const ChatView = ({ workflowId }: { workflowId: string }) => {
   const { view, setView } = useWorkflow();
   const isPreview = view === "preview";
-  const [messages, setMessages] = useState<UIMessage[]>([]);
 
   // Move states here
   const [chatId, setChatId] = useState<string | null>(() =>

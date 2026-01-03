@@ -93,9 +93,11 @@ export function WorkflowHeader({ name }: { name?: string }) {
               Code
             </Button> */}
             <CodeDialog />
-            <Button size="sm" className={`h-8 ${zIndex}`}>
-              Publish
-            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`h-8 ${zIndex}`}
+            ></Button>
           </div>
         </div>
       </header>

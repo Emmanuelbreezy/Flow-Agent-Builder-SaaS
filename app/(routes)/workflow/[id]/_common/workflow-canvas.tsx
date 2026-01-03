@@ -154,10 +154,7 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
             onDragOver={onDragOver}
             onDrop={onDrop}
             defaultViewport={{ x: 0, y: 0, zoom: 1.2 }}
-
             //fitView
-            // panOnDrag={!isPreview ? toolMode === TOOL_MODE_ENUM.HAND : false}
-            //zoomOnDoubleClick={false}
           >
             <Background
               variant={BackgroundVariant.Dots}
