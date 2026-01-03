@@ -1,4 +1,4 @@
-import { GlobeIcon } from "lucide-react";
+import { GlobeIcon, Server, Wrench } from "lucide-react";
 
 export const TOOL_MODE_ENUM = {
   SELECT: "select",
@@ -25,5 +25,13 @@ export const TOOLS = [
     name: "Web Search",
     description: "Search the web",
     icon: GlobeIcon,
+  },
+  {
+    id: "mcpServer",
+    type: "mcp",
+    name: "MCP Server",
+    description: "Connect to external MCP server",
+    icon: Server,
+    tools: [],
   },
 ];

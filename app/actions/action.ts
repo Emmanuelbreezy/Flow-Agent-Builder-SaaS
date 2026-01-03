@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 import { openrouter } from "@openrouter/ai-sdk-provider";
+import { createMCPClient } from "@ai-sdk/mcp";
 import { webSearch } from "@exalabs/ai-sdk";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
 import { TOOLS } from "@/lib/workflow/constants";
+import prisma from "@/lib/prisma";
 
 export async function streamAgentAction({
   model,
@@ -53,4 +55,66 @@ export async function streamAgentAction({
     ...jsonOutput,
   });
   return result;
+}
+
+//Mcp
+export async function getMcpToolSet({
+  url,
+  apiKey,
+}: {
+  url: string;
+  apiKey?: string;
+}) {
+  const client = await createMCPClient({
+    transport: {
+      type: "http",
+      url,
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
+    },
+  });
+  const toolSet = await client.tools();
+  await client.close();
+  return toolSet; // raw object
+}
+
+export async function connectMcpServer({
+  url,
+  apiKey,
+}: {
+  url: string;
+  apiKey?: string;
+}) {
+  const toolSet = await getMcpToolSet({ url, apiKey });
+  const toolsArray = Object.entries(toolSet).map(([name, tool]) => ({
+    name,
+    description: tool.description || "",
+    inputSchema: "",
+  }));
+  return { tools: toolsArray };
+}
+
+export async function addMcpServer({
+  url,
+  apiKey,
+  label,
+  userId,
+}: {
+  url: string;
+  apiKey?: string;
+  label: string;
+  userId: string;
+}) {
+  // Connect and get tools
+  const tools = await connectMcpServer({ url, apiKey });
+  const encryptedKey = "<ENCRYPTED_API_KEY>";
+
+  await prisma.mCPCredential.create({
+    data: {
+      userId,
+      serverLabel: label,
+      encryptedKey,
+    },
+  });
+
+  return { tools };
 }

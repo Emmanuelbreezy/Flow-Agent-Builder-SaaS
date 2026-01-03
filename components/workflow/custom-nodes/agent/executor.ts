@@ -133,6 +133,7 @@ export async function executeAgent(
             },
           },
         });
+
         break;
     }
   }
@@ -149,6 +150,27 @@ export async function executeAgent(
 //
 //
 //
+
+//  case "reasoning-delta":
+//         await channel.emit("workflow.chunk", {
+//           type: "data-workflow-node",
+//           id: node.id,
+//           data: {
+//             id: node.id,
+//             nodeType: node.type,
+//             nodeName: node.data?.name,
+//             status: "loading",
+//             reasoningDelta: {},
+//           },
+//         });
+//  <Reasoning
+//                             key={`${message.id}-${i}`}
+//                             className="w-full"
+//                             isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
+//                           >
+//                             <ReasoningTrigger />
+//                             <ReasoningContent>{part.text}</ReasoningContent>
+//                           </Reasoning>
 // const result = streamText({
 //   model: openrouter.chat(model),
 //   system: systemPrompt,
