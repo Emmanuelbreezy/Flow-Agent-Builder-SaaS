@@ -7,7 +7,7 @@ import { tavilyExtract, tavilySearch } from "@tavily/ai-sdk";
 const webSearch = tavilySearch({
   apiKey: process.env.TAVILY_API_KEY!,
   searchDepth: "advanced",
-  topic: "general",
+  //topic: "general",
 });
 const webExtract = tavilyExtract({
   apiKey: process.env.TAVILY_API_KEY!,
@@ -18,6 +18,7 @@ export async function getTools(selectedTools: string[]) {
   for (const toolId of selectedTools) {
     if (toolId === "webSearch") {
       tools.webSearch = webSearch;
+      //tools.google_search = google.tools.googleSearch({});
     } else if (toolId === "webExtract") {
       tools.webExtract = webExtract;
     }

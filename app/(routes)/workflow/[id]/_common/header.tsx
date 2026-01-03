@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useWorkflow } from "@/context/workflow-context";
+import CodeDialog from "@/components/workflow/code-dialog";
 
 export function WorkflowHeader({ name }: { name?: string }) {
   const { view, setView } = useWorkflow();
@@ -87,10 +88,11 @@ export function WorkflowHeader({ name }: { name?: string }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="ghost" size="sm" className="h-8 gap-1.5">
+            {/* <Button variant="ghost" size="sm" className="h-8 gap-1.5">
               <Code className="h-3.5 w-3.5" />
               Code
-            </Button>
+            </Button> */}
+            <CodeDialog />
             <Button size="sm" className={`h-8 ${zIndex}`}>
               Publish
             </Button>
