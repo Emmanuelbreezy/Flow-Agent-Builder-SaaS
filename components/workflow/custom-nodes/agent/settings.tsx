@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 import { MentionInputComponent } from "../../mention-input";
 import { JsonSchema } from "./json-schema";
 //import { MCPDialog } from "../../mcp/mcp-dialog";
-import { MODELS, TOOLS } from "@/lib/workflow/constants";
+import { MCPToolType, MODELS, TOOLS } from "@/lib/workflow/constants";
 import { MCPDialog } from "../../mcp/mcp-dialog";
 
 const OUTPUT_FORMATS = [
@@ -91,12 +91,13 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
   const handleSaveMCP = (
     label: string,
     url: string,
-    credentialId: string | null,
-    selectedTools: any[]
+    credentialId: string,
+    approval: string,
+    selectedTools: MCPToolType[]
   ) => {
     handleChange("tools", [
       ...tools,
-      { type: "mcp", label, url, credentialId, tools: selectedTools },
+      { type: "mcp", label, url, credentialId, approval, tools: selectedTools },
     ]);
   };
 

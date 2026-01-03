@@ -31,7 +31,8 @@ model MCPCredential {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   userId       String
   serverLabel  String
-  encryptedKey String
+  approval     String
+  value        String // encrypted API key
   createdAt    DateTime @default(now())
 
   @@index([userId])

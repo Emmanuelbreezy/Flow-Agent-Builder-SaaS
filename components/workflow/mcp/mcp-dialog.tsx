@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { KeyRound, EyeOff, Server, Settings2 } from "lucide-react";
+import { KeyRound, Server } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -22,11 +22,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { connectMcpServer } from "@/app/actions/action";
 import { toast } from "sonner";
-
-interface MCPTool {
-  name: string;
-  description: string;
-}
+import { MCPToolType } from "@/lib/workflow/constants";
 
 interface MCPDialogProps {
   open: boolean;
@@ -34,11 +30,11 @@ interface MCPDialogProps {
   onSave: (data: {
     label: string;
     url: string;
-    apiKey: string;
+    credentialId: string;
     approval: string;
-    tools: MCPTool[];
+    tools: MCPToolType[];
   }) => void;
-  initialTools?: MCPTool[];
+  initialTools?: MCPToolType[];
 }
 
 export function MCPDialog({ open, onOpenChange, onSave }: MCPDialogProps) {
@@ -47,7 +43,7 @@ export function MCPDialog({ open, onOpenChange, onSave }: MCPDialogProps) {
   const [label, setLabel] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(false);
-  const [tools, setTools] = useState<MCPTool[]>([]);
+  const [tools, setTools] = useState<MCPToolType[]>([]);
   const [selectedTools, setSelectedTools] = useState<Set<string>>(new Set());
   const [approval, setApproval] = useState<string>("always");
 
@@ -76,7 +72,7 @@ export function MCPDialog({ open, onOpenChange, onSave }: MCPDialogProps) {
     onSave({
       label,
       url,
-      apiKey,
+      credentialId: "",
       approval,
       tools: selected,
     });
