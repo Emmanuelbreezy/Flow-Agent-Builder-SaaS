@@ -45,7 +45,6 @@ import { nanoid } from "nanoid";
 import { createWorkflowTransport } from "@/lib/transport";
 import { cn } from "@/lib/utils";
 import { Loader, TextShimmerLoader } from "@/components/ui/loader";
-import { Button } from "@/components/ui/button";
 
 interface ChatPanelProps {
   workflowId: string;
@@ -60,7 +59,7 @@ export const ChatPanel = ({
 }: ChatPanelProps) => {
   const [input, setInput] = useState<string>("");
 
-  const { messages, sendMessage, status, stop } = useChat<UIMessage>({
+  const { messages, sendMessage, status } = useChat<UIMessage>({
     id: chatId ?? undefined,
     messages: initialMessages,
     transport: createWorkflowTransport({
@@ -176,34 +175,18 @@ export const ChatPanel = ({
             />
           </PromptInputBody>
           <PromptInputFooter className="flex justify-end">
-            {isLoading ? (
-              <StopButton stop={stop} />
-            ) : (
-              <PromptInputSubmit
-                disabled={!input.trim() || !status}
-                className="h-9! w-9! p-0! rounded-xl! bg-foreground! text-background!"
-              >
-                <ArrowUp size={18} />
-              </PromptInputSubmit>
-            )}
+            <PromptInputSubmit
+              disabled={!input.trim() || !status || isLoading}
+              className="h-9! w-9! p-0! rounded-xl! bg-foreground! text-background!"
+            >
+              <ArrowUp size={18} />
+            </PromptInputSubmit>
           </PromptInputFooter>
         </PromptInput>
       </div>
     </div>
   );
 };
-
-function StopButton({ stop }: { stop: () => void }) {
-  return (
-    <Button
-      size="icon"
-      className="bg-muted rounded-full dark:bg-black border cursor-pointer"
-      onClick={stop}
-    >
-      <Square size={14} className="fill-black dark:fill-white" />
-    </Button>
-  );
-}
 
 interface NodeDisplayProps {
   data: {
@@ -231,7 +214,6 @@ export const NodeDisplay = ({
   const Icon = nodeConfig.icon;
   const { status, output, toolCall, toolResult, error } = data;
 
-  console.log(toolResult, "toolResult");
   return (
     <div key={`${messageId}-node-${partIndex}`}>
       {/* Header */}

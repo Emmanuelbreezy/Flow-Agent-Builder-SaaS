@@ -134,7 +134,20 @@ export async function executeAgent(
             },
           },
         });
+        break;
 
+      case "finish":
+        await channel.emit("workflow.chunk", {
+          type: "data-workflow-node",
+          id: node.id,
+          data: {
+            id: node.id,
+            nodeType: node.type,
+            nodeName: node.data?.name,
+            status: "complete",
+            output: fullText,
+          },
+        });
         break;
     }
   }
