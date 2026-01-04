@@ -13,7 +13,7 @@ const BASE_URL = process.env.VERCEL_URL
 export async function POST(request: NextRequest) {
   const { workflowId, messages } = await request.json();
 
-  console.log("Triggering workflow:", workflowId, messages);
+  console.log("Triggering workflow:", workflowId);
 
   try {
     const result = await client.trigger({

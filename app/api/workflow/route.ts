@@ -17,9 +17,7 @@ export async function GET() {
         id: true,
         name: true,
         description: true,
-        status: true,
         createdAt: true,
-        updatedAt: true,
       },
       orderBy: { createdAt: "desc" },
     });

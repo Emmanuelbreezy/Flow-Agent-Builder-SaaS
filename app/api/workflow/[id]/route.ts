@@ -33,7 +33,6 @@ export async function GET(
       data: {
         id: workflow.id,
         name: workflow.name,
-        status: workflow.status,
         flowObject: flowObject,
       },
     });
