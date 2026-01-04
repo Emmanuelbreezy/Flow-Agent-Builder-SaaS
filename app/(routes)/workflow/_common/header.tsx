@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import {
+  LogoutLink,
+  useKindeBrowserClient,
+} from "@kinde-oss/kinde-auth-nextjs";
 import { LogOut, MoonIcon, SunIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -67,9 +70,11 @@ const Header = () => {
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
+              <DropdownMenuItem>
+                <LogoutLink className="w-full flex items-center gap-1 text-destructive ">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </LogoutLink>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

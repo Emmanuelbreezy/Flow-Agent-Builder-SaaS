@@ -3,63 +3,68 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LoginLink } from "@kinde-oss/kinde-auth-nextjs";
+import AppPreview from "./app-preview";
 
 const Hero = () => {
   return (
     <section
       className={cn(
-        "relative mt-6 overflow-hidden rounded-3xl border shadow-sm",
-        "px-6 py-14 sm:py-16 md:py-18"
+        "relative mt-3 overflow-hidden rounded-3xl border backdrop-blur-sm",
+        "px-6 py-10"
       )}
     >
-      <div className="relative z-10 mx-auto max-w-3xl text-center">
-        <div className="mb-5 flex items-center justify-center gap-2">
-          <span className="rounded-full border px-3 py-1 text-xs shadow-lg backdrop-blur-md font-medium bg-white dark:bg-black/40 border-white/20 dark:text-white">
-            💫 New 🧠 AI-Powered Knowledge
+      <div className="relative z-10 mx-auto max-w-4xl text-center">
+        {/* Badge */}
+        <div className="mb-5 flex items-center justify-center">
+          <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-xs sm:text-sm font-medium text-indigo-600 dark:text-indigo-300 shadow-sm backdrop-blur-md">
+            ✨ The Visual Workflow Builder for AI
           </span>
         </div>
 
+        {/* Main Heading */}
         <h1
-          className={cn(`relative text-balance font-extrabold tracking-tight leading-tight -ml-2
-            text-4xl sm:text-5xl md:text-6xl text-shadow-xs dark:text-shadow-none
-            bg-clip-text text-transparent bg-gradient-to-r from-black to-black dark:from-white dark:to-white
-            transition-colors duration-500 opacity-0 fade-in-up [animation-delay:200ms]`)}
+          className={cn(
+            "relative text-balance font-extrabold tracking-tight leading-[1.1]",
+            "text-5xl sm:text-6xl md:text-7xl lg:text-8xl", // Much larger text
+            "text-foreground"
+          )}
         >
-          <span className="block ">The Secondbrain </span>
-          <span className="block mt-2 fade-in-down">
-            AI agent that works for you
+          Build AI Agents with
+          <span className="block mt-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 dark:from-indigo-400 dark:via-violet-400 dark:to-indigo-400 animate-gradient-x pb-2">
+            Visual Workflows
           </span>
         </h1>
 
-        <p
-          className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg
-        opacity-0 fade-in-up [animation-delay:200ms]
-        "
-        >
-          Capture, organize, and connect your thoughts with intelligent AI
-          assistance. Transform scattered ideas into actionable.
+        {/* Subheading */}
+        <p className="mt-4 mx-auto max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">
+          Drag, drop, and connect. Create powerful AI agents that integrate with
+          your tools and data—no coding required.
         </p>
 
-        <div className="mt-8 flex items-center justify-center gap-4">
+        {/* CTA Buttons */}
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
           <LoginLink>
             <Button
+              size="lg"
               className={cn(
-                "rounded-full px-6 py-5 sm:py-6 text-sm sm:!text-base shadow-lg !pl-8",
-                "bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                "rounded-full px-8 py-6 text-base font-semibold shadow-xl transition-all hover:scale-105"
               )}
             >
-              Get Started For Free
+              Start Building For Free
             </Button>
           </LoginLink>
 
           <Button
-            variant="ghost"
-            className="rounded-full px-6 py-5 sm:py-6 text-sm sm:text-base hover:bg-muted/20"
+            variant="outline"
+            size="lg"
+            className="rounded-full px-8 py-6 text-base hover:bg-muted/50 border-muted-foreground/20"
           >
-            <Link href="/learn-more">Learn More</Link>
+            <Link href="/learn-more">View Demo</Link>
           </Button>
         </div>
       </div>
+
+      <AppPreview />
     </section>
   );
 };

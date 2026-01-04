@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/logo";
-import { LoginLink } from "@kinde-oss/kinde-auth-nextjs";
+import { LoginLink, useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { Button } from "@/components/ui/button";
 
 function Navbar() {
+  const { isAuthenticated } = useKindeBrowserClient();
   return (
     <header>
       <nav
@@ -54,9 +55,15 @@ function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
-          <LoginLink>
-            <Button>Sign In</Button>
-          </LoginLink>
+          {isAuthenticated ? (
+            <Link href="/workflow">
+              <Button>Dashboard</Button>
+            </Link>
+          ) : (
+            <LoginLink>
+              <Button>Sign In</Button>
+            </LoginLink>
+          )}
         </div>
       </nav>
     </header>
