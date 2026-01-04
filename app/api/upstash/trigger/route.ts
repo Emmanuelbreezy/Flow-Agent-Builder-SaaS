@@ -30,8 +30,7 @@ export async function POST(request: NextRequest) {
       success: true,
       workflowRunId: result.workflowRunId,
     });
-  } catch (error) {
-    console.error("Trigger error:", error);
+  } catch {
     return NextResponse.json(
       { success: false, error: "Failed to trigger workflow" },
       { status: 500 }
