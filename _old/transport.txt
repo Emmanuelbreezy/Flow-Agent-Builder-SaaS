@@ -1,0 +1,67 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { DefaultChatTransport } from "ai";
+
+export const createResumableTransport = ({
+  workflowId,
+  messageId,
+  setChatId,
+  setMessageId,
+}: {
+  workflowId: string;
+  messageId: string | null;
+  setChatId: (id: string | null) => any;
+  setMessageId: (id: string | null) => any;
+}) =>
+  new DefaultChatTransport({
+    api: `/api/workflow/${workflowId}/chat`,
+    async prepareSendMessagesRequest({ messages, id }) {
+      await setChatId(id);
+      return {
+        body: {
+          workflowId,
+          id: id,
+          messages,
+          //message: messages[messages.length - 1],
+        },
+      };
+    },
+    prepareReconnectToStreamRequest: (data) => {
+      return {
+        ...data,
+        headers: { ...data.headers, "x-is-reconnect": "true" },
+      };
+    },
+    fetch: async (input, init) => {
+      const headers = new Headers(init?.headers);
+
+      if (headers.get("x-is-reconnect") === "true") {
+        return fetch(input + `?id=${messageId}`, {
+          ...init,
+          method: "GET",
+        });
+      }
+
+      const { id } = JSON.parse(init?.body as string).message;
+      await setMessageId(id);
+
+      const [res] = await Promise.all([
+        fetch(input + `?id=${id}`, { method: "GET" }), // ← Opens SSE stream
+        fetch(input, init), // ← Sends POST request
+      ]);
+
+      // const [res] = await Promise.all([
+      //   fetch(input + `?id=${id}`, { method: "GET" }),
+      //   fetch(input, init),
+      // ]);
+
+      return res;
+    },
+  });
+
+//
+//
+//
+//
+// export const createRegularTransport = () => {
+//   return new DefaultChatTransport({ api: `/api/workflow/${workflowId}/chat`,});
+// };

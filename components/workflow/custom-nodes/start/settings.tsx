@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React from "react";
@@ -12,12 +11,11 @@ import {
 import { toast } from "sonner";
 
 interface StartSettingsProps {
-  id: string;
-  data: any;
+  nodeId: string;
 }
 
-export const StartSettings = ({ data }: StartSettingsProps) => {
-  const inputVariable = data.inputVariable || "input_as_text";
+export const StartSettings = ({ nodeId }: StartSettingsProps) => {
+  const inputVariable = `${nodeId}-input`;
 
   const copyVariable = () => {
     navigator.clipboard.writeText(`{{${inputVariable}}}`);

@@ -2,25 +2,21 @@
 
 import React from "react";
 import { UserCheck } from "lucide-react";
-import { Position, NodeProps, useReactFlow } from "@xyflow/react";
+import { Position, NodeProps } from "@xyflow/react";
 import WorkflowNode from "../../workflow-node";
 import { BaseHandle } from "../../react-flow/base-handle";
 import { UserApprovalSettings } from "./settings";
 
 export const UserApprovalNode = ({ data, selected, id }: NodeProps) => {
-  const { deleteElements } = useReactFlow();
   const options = (data.options as string[]) || ["Approve", "Reject"];
   const bgcolor = (data?.color as string) || "bg-orange-500";
   const label = (data?.name as string) || "User approval";
   const message = (data?.message as string) || "Condition";
 
-  const handleDelete = () => {
-    deleteElements({ nodes: [{ id }] });
-  };
-
   return (
     <>
       <WorkflowNode
+        nodeId={id}
         label={label}
         subText={message}
         className="w-full"
@@ -31,7 +27,6 @@ export const UserApprovalNode = ({ data, selected, id }: NodeProps) => {
         settingsTitle="User approval"
         settingsDescription="Pause for a human to approve or reject a step"
         settingComponent={<UserApprovalSettings id={id} data={data} />}
-        onDelete={handleDelete}
       >
         {options?.map((option: string, index: number) => (
           <div

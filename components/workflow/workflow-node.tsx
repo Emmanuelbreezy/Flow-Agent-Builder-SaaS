@@ -11,16 +11,19 @@ import { cn } from "@/lib/utils";
 import { ButtonGroup } from "../ui/button-group";
 import { NodeStatusIndicator } from "./react-flow/node-status-indicator";
 import { BaseHandle } from "./react-flow/base-handle";
-import { Position } from "@xyflow/react";
+import { Position, useReactFlow } from "@xyflow/react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { toast } from "sonner";
 
 interface WorkflowNodeProps {
+  nodeId: string;
   label: string;
   subText: string;
   icon: LucideIcon;
@@ -30,32 +33,39 @@ interface WorkflowNodeProps {
   color?: string;
   status?: "initial" | "loading" | "error" | "success";
   className?: string;
-  renderDescription?: React.ReactNode;
   children?: React.ReactNode;
   settingComponent?: React.ReactNode;
   settingsTitle?: string;
   settingsDescription?: string;
-  onDelete?: () => void;
 }
 
 const WorkflowNode = ({
+  nodeId,
   label,
   subText,
   isDeletable = true,
   icon: Icon,
   handles,
   selected,
-  color = "bg-blue-500",
+  color = "bg-gray-500",
   status = "initial",
   className,
-  renderDescription,
   children,
   settingComponent,
   settingsTitle,
   settingsDescription,
-  onDelete,
 }: WorkflowNodeProps) => {
+  const { deleteElements } = useReactFlow();
+
   const [settingsOpen, setSettingsOpen] = React.useState(false);
+
+  const onDelete = () => {
+    if (!isDeletable) {
+      toast.error("Cannot delete this node");
+      return; // Prevent deleting the node
+    }
+    deleteElements({ nodes: [{ id: nodeId }] });
+  };
 
   return (
     <>
@@ -81,11 +91,11 @@ const WorkflowNode = ({
                     <Icon className="size-3.5 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <BaseNodeHeaderTitle className="text-sm pr-1 font-medium!">
+                    <BaseNodeHeaderTitle className="text-sm! pr-2 font-medium!">
                       {label}
                     </BaseNodeHeaderTitle>
                     {subText && (
-                      <p className="text-[11px] text-muted-foreground -mt-0.5 truncate max-w-[80px]">
+                      <p className="text-[11px] text-muted-foreground -mt-0.5 truncate max-w-20">
                         {subText}
                       </p>
                     )}
@@ -150,17 +160,14 @@ const WorkflowNode = ({
             </BaseNode>
           </NodeStatusIndicator>
         </div>
-        {renderDescription && (
-          <div className="max-w-40 w-full p-1">{renderDescription}</div>
-        )}
       </div>
 
       {/* Settings Dialog */}
       {settingComponent && (
         <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
           <DialogContent
-            className="max-w-2xl  px-0!"
-            overlayClass="bg-black/5! backdrop-blur-none!"
+            className="max-w-md!  px-0! pb-2!"
+            overlayClass="bg-black/10! backdrop-blur-none!"
           >
             <DialogHeader className="px-4">
               <DialogTitle>{settingsTitle || `${label} Settings`}</DialogTitle>
@@ -168,9 +175,18 @@ const WorkflowNode = ({
                 <DialogDescription>{settingsDescription}</DialogDescription>
               )}
             </DialogHeader>
-            <div className="px-4 space-y-4 h-full max-h-[80vh] overflow-y-auto">
+            <div className="px-4 space-y-4 h-full max-h-[65vh] overflow-y-auto">
               {settingComponent}
             </div>
+            <DialogFooter className="px-4 border-t pt-2">
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setSettingsOpen(false)}
+              >
+                Close
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}

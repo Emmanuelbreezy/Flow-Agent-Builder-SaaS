@@ -5,17 +5,10 @@ import * as React from "react";
 import { MentionsInput, Mention } from "react-mentions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BracesIcon, Variable } from "lucide-react";
+import { BracesIcon } from "lucide-react";
 import { useWorkflow } from "@/context/workflow-context";
-import { NODE_CONFIG, NodeType } from "@/constant/canvas";
 
-import {
-  Command,
-  CommandList,
-  CommandItem,
-  CommandEmpty,
-  CommandGroup,
-} from "@/components/ui/command";
+import { Command, CommandList, CommandItem } from "@/components/ui/command";
 
 type Suggestion = {
   id: string;
@@ -25,64 +18,63 @@ type Suggestion = {
 
 interface MentionInputComponentProps {
   value: string;
-  onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
   multiline?: boolean;
   rows?: number;
-  suggestions?: Suggestion[];
   showTriggerButton?: boolean;
   nodeId?: string;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
 }
 
 export function MentionInputComponent({
   value,
-  onChange,
   placeholder = "Type {{ to insert variables",
   className,
   multiline = false,
   rows = 4,
-  suggestions: customSuggestions = [],
   showTriggerButton = true,
   nodeId,
+  onChange,
+  onBlur,
 }: MentionInputComponentProps) {
-  const { getVariablesForNode, nodes } = useWorkflow();
+  const { getVariablesForNode } = useWorkflow();
 
   // Generate suggestions from upstream nodes if nodeId provided
   const suggestions = React.useMemo(() => {
-    if (!nodeId) return customSuggestions;
-
-    const filteredNodes = getVariablesForNode(nodeId);
+    if (!nodeId) return [];
+    const availableNodes = getVariablesForNode(nodeId);
     const result: Suggestion[] = [];
+    availableNodes.forEach((node) => {
+      const nodeName = node.name.toLowerCase().replace(/ /g, "_");
 
-    filteredNodes.forEach((node) => {
-      const nodeData = nodes.find((n) => n.id === node.id);
-      if (!nodeData) return;
-      const config = NODE_CONFIG[nodeData.type as NodeType];
-      config?.outputs().forEach((output: any) => {
+      // Loop through outputs from node data
+      node.outputs?.forEach((output: string) => {
         result.push({
-          id: `${node.id}.${output.id}`,
-          display: `${node.name}.${output.id}`,
-          description: output.type,
+          id: `${node.nodeId}.${output}`,
+          display: `${nodeName}.${output}`,
+          //id: `${node.id}.${output}`
         });
       });
     });
 
     return result;
-  }, [nodeId, nodes, getVariablesForNode, customSuggestions]);
+  }, [nodeId, getVariablesForNode]);
 
   const handleTriggerClick = () => {
     onChange(value + "{{");
   };
 
   const wrapperClass = cn(
-    "relative w-full rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow]",
+    "relative w-full  rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow]",
     "focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",
     "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
     "aria-invalid:border-destructive dark:aria-invalid:border-destructive/50",
     "disabled:cursor-not-allowed disabled:opacity-50",
     multiline ? "min-h-18" : "h-9",
     "p-2",
+    "max-h-64! ",
     className
   );
 
@@ -96,6 +88,7 @@ export function MentionInputComponent({
       zIndex: 999,
       color: "inherit",
       backgroundColor: "transparent",
+      //maxHeight: multiline ? "300px" : "none",
     },
     input: {
       background: "transparent",
@@ -113,30 +106,45 @@ export function MentionInputComponent({
     <div className={wrapperClass}>
       <MentionsInput
         value={value}
-        onChange={(_, newValue) => onChange(newValue)}
+        onChange={(event) => onChange(event.target.value)}
+        onBlur={onBlur}
         singleLine={!multiline}
         placeholder={placeholder}
-        allowSuggestionsAboveCursor={false}
         spellCheck="false"
         style={mentionsStyle}
         className={cn(
-          "relative w-full",
+          "relative w-full h-auto",
           "[&_textarea]:text-base [&_textarea]:md:text-sm",
           "[&_textarea]:placeholder:text-muted-foreground",
-          "[&_textarea]:w-full [&_textarea]:outline-none"
+          "[&_textarea]:w-full [&_textarea]:outline-none",
+          "[&_textarea]:max-h-60 [&_textarea]:overflow-y-auto!"
         )}
+        allowSuggestionsAboveCursor
+        forceSuggestionsAboveCursor
         customSuggestionsContainer={(children) => (
-          <div className="z-50 w-56 rounded-lg border border-border bg-popover shadow-md">
+          <div
+            className="fixed bg-popover z-999! min-w-64 max-w-80 rounded-lg border shadow-lg right-10!
+"
+          >
             <Command>
               <CommandList className="max-h-64 overflow-y-auto">
-                {React.Children.count(children) === 0 && (
-                  <CommandEmpty>No variables found</CommandEmpty>
-                )}
                 {children}
               </CommandList>
             </Command>
           </div>
         )}
+        // customSuggestionsContainer={(children) => (
+        //   <div className="z-999 min-w-64 max-w-80 rounded-lg border border-border bg-popover shadow-md inset-y-0">
+        //     <Command>
+        //       <CommandList className=" overflow-y-auto">
+        //         {React.Children.count(children) === 0 && (
+        //           <CommandEmpty>No variables found</CommandEmpty>
+        //         )}
+        //         {children}
+        //       </CommandList>
+        //     </Command>
+        //   </div>
+        // )}
       >
         <Mention
           trigger="{{"
@@ -149,12 +157,12 @@ export function MentionInputComponent({
             <CommandItem
               value={entry.display}
               className={cn(
-                "flex justify-between text-xs",
+                "flex justify-between text-sm",
                 focused && "bg-accent text-accent-foreground"
               )}
             >
               <div className="flex flex-1 items-start gap-2">
-                <Variable className="mt-0.5 size-3 text-muted-foreground" />
+                📃
                 <span className="font-mono truncate">{entry.display}</span>
               </div>
               <span className="text-muted-foreground">

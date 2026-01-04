@@ -5,7 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
-import { MentionInputComponent } from "@/components/workflow/mention-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MentionInputComponent } from "../../mention-input";
 
 interface IfElseSettingsProps {
   id: string;
@@ -14,16 +21,35 @@ interface IfElseSettingsProps {
 
 interface Condition {
   caseName?: string;
-  condition: string;
+  variable?: string;
+  operator?: string;
+  value?: string;
 }
+
+const OPERATORS = [
+  { label: "Equals", value: "==" },
+  { label: "Not equals", value: "!=" },
+  { label: "Greater than", value: ">" },
+  { label: "Less than", value: "<" },
+  // Add more as needed
+];
 
 export const IfElseSettings = ({ id, data }: IfElseSettingsProps) => {
   const { updateNodeData } = useReactFlow();
-  const conditions = (data?.conditions as Condition[]) || [{ condition: "" }];
+  const conditions = (data?.conditions as Condition[]) || [
+    {
+      variable: "",
+      operator: OPERATORS[0].value || "",
+      value: "",
+    },
+  ];
 
   const handleAddCondition = () => {
     updateNodeData(id, {
-      conditions: [...conditions, { caseName: "", condition: "" }],
+      conditions: [
+        ...conditions,
+        { caseName: "", variable: "", operator: "", value: "" },
+      ],
     });
   };
 
@@ -38,7 +64,7 @@ export const IfElseSettings = ({ id, data }: IfElseSettingsProps) => {
 
   const handleUpdateCondition = (
     index: number,
-    field: "caseName" | "condition",
+    field: keyof Condition,
     value: string
   ) => {
     const newConditions = [...conditions];
@@ -85,25 +111,47 @@ export const IfElseSettings = ({ id, data }: IfElseSettingsProps) => {
                 placeholder="Case name (optional)"
                 className="bg-muted/50"
               />
-              <MentionInputComponent
-                nodeId={id}
-                value={condition.condition || ""}
-                placeholder="Enter condition, e.g. {{workflow.input_as_text}} == 'value'"
-                rows={2}
-                multiline={true}
-                onChange={(value) =>
-                  handleUpdateCondition(index, "condition", value)
-                }
-                className="bg-muted/50 font-mono text-xs"
-              />
+              <div className="flex gap-2">
+                <MentionInputComponent
+                  nodeId={id}
+                  value={condition.variable || ""}
+                  placeholder="{{agent.output}}'"
+                  multiline={false}
+                  onChange={(value) =>
+                    handleUpdateCondition(index, "variable", value)
+                  }
+                  className="bg-muted/50 font-mono text-xs w-full! max-w-48!"
+                />
+                <Select
+                  value={condition.operator || ""}
+                  onValueChange={(v) =>
+                    handleUpdateCondition(index, "operator", v ?? "")
+                  }
+                >
+                  <SelectTrigger className="w-28 text-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OPERATORS.map((op) => (
+                      <SelectItem key={op.value} value={op.value}>
+                        {op.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={condition.value || ""}
+                  onChange={(e) =>
+                    handleUpdateCondition(index, "value", e.target.value)
+                  }
+                  placeholder="Value"
+                  className="bg-muted/50 font-mono text-xs"
+                />
+              </div>
             </div>
           </div>
         ))}
       </div>
-
-      <p className="text-xs text-muted-foreground mt-1 mb-3">
-        Use Common Expression Language to create a custom expression.
-      </p>
 
       <Button variant="outline" size="sm" onClick={handleAddCondition}>
         <Plus className="size-4" />
