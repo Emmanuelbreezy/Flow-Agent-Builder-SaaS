@@ -77,8 +77,8 @@ export async function streamAgentAction({
 }) {
   console.log(selectedTools, "selectedTools");
   const modelMessages = await convertToModelMessages(history);
-
   const tools: Record<string, any> = {};
+  const mcpClients: any[] = [];
 
   // Native tools
   for (const t of selectedTools.filter((t) => t.type === "native")) {
@@ -87,8 +87,8 @@ export async function streamAgentAction({
 
   // MCP tools
   for (const t of selectedTools.filter((t) => t.type === "mcp")) {
-    const toolSet = await getMcpToolsByServerId(t.serverId);
-    console.log("Fetched toolSet from MCP:", Object.keys(toolSet));
+    const { toolSet, client } = await getMcpToolsByServerId(t.serverId);
+    mcpClients.push(client); // Save client for later
     for (const tool of t.tools) {
       if (toolSet[tool.name]) tools[tool.name] = toolSet[tool.name];
     }
@@ -118,7 +118,14 @@ ${toolList ? `\nAvailable tools:\n${toolList}` : ""}`.trim();
     tools: Object.keys(tools).length > 0 ? tools : undefined,
     stopWhen: stepCountIs(5),
     ...jsonOutput,
+    onFinish: async () => {
+      console.log("Stream finished");
+      for (const client of mcpClients) {
+        await client.close();
+      }
+    },
   });
+
   return result;
 }
 
@@ -130,18 +137,6 @@ export async function getMcpToolsByServerId(serverId: string) {
 
   const apiKey = server.token ? decrypt(server.token) : undefined;
   const url = server.url;
-  const toolSet = await getMcpToolSet({ url, apiKey });
-  return toolSet; // raw object, or map to array if needed
-}
-
-//Mcp
-export async function getMcpToolSet({
-  url,
-  apiKey,
-}: {
-  url: string;
-  apiKey?: string;
-}) {
   const client = await createMCPClient({
     transport: {
       type: "http",
@@ -149,9 +144,9 @@ export async function getMcpToolSet({
       headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
     },
   });
+
   const toolSet = await client.tools();
-  await client.close();
-  return toolSet; // raw object
+  return { toolSet, client }; // raw object, or map to array if needed
 }
 
 export async function connectMcpServer({
@@ -161,12 +156,20 @@ export async function connectMcpServer({
   url: string;
   apiKey?: string;
 }) {
-  const toolSet = await getMcpToolSet({ url, apiKey });
+  if (!url) throw new Error("MCP server URL is required");
+  const client = await createMCPClient({
+    transport: {
+      type: "http",
+      url,
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
+    },
+  });
+  const toolSet = await client.tools();
   const toolsArray = Object.entries(toolSet).map(([name, tool]) => ({
     name,
     description: tool.description || "",
-    inputSchema: "",
   }));
+  await client.close();
   return { tools: toolsArray };
 }
 
@@ -215,3 +218,27 @@ export async function addMcpServer({
 
   return { serverId: server.id };
 }
+
+//
+//
+//
+//
+//Mcp
+// export async function getMcpToolSet({
+//   url,
+//   apiKey,
+// }: {
+//   url: string;
+//   apiKey?: string;
+// }) {
+//   const client = await createMCPClient({
+//     transport: {
+//       type: "http",
+//       url,
+//       headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
+//     },
+//   });
+//   const toolSet = await client.tools();
+//   await client.close();
+//   return toolSet; // raw object
+// }
