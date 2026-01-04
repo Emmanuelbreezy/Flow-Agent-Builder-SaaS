@@ -21,7 +21,6 @@ export const GET = async (req: Request) => {
         events: ["workflow.chunk"],
         history: true, // <-- This streams both history and new events!
         onData({ event, data, channel }) {
-          console.log(data, "data", "data");
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
           );

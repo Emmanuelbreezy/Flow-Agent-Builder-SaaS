@@ -99,8 +99,6 @@ export async function executeWorkflow(
     transient: true, // This chunk is transient and won't be stored in history
   });
 
-  //const tools = await getTools(selectedTools);
-
   const context: ExecutorContextType = {
     outputs: {
       [startNode.id]: { input: userInput },
@@ -140,13 +138,7 @@ export async function executeWorkflow(
     try {
       // Execute node
       const result = await executor(node, context);
-      // Store output
-      if (node.type !== NodeTypeEnum.START) {
-        const outputResult =
-          node.type === NodeTypeEnum.AGENT ? result : result.output;
-        context.outputs[node.id] = outputResult;
-      }
-
+      // console.log("-------EXECUTE_WORFLOW_RESULT----------", result.output);
       // Emit node result
       await channel.emit("workflow.chunk", {
         type: "data-workflow-node",
@@ -155,10 +147,19 @@ export async function executeWorkflow(
           id: node.id,
           nodeType: node.type,
           nodeName: node.data?.name,
-          output: result.output?.text || result.output,
           status: "complete",
+          output: result.output?.text || result.output,
         },
       });
+
+      // Store output
+      if (node.type !== NodeTypeEnum.START) {
+        const outputResult =
+          node.type === NodeTypeEnum.AGENT ? result : result.output;
+        context.outputs[node.id] = outputResult;
+      }
+
+      console.log(result, "result");
 
       // Handle END node
       if (node.type === NodeTypeEnum.END) {
@@ -224,7 +225,6 @@ export async function executeWorkflow(
 
   return {
     success: true,
-    output: "",
     outputs: context.outputs,
   };
 }
