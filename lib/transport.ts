@@ -29,7 +29,7 @@ export const createWorkflowTransport = ({
 
       // console.log(workflowRunId, "workflowRunId");
       // 2. GET to chat endpoint for streaming
-      return fetch(`/api/workflow/${workflowId}/chat?id=${workflowRunId}`, {
+      return fetch(`/api/workflow/chat?id=${workflowRunId}`, {
         method: "GET",
       });
     },
