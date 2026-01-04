@@ -176,7 +176,7 @@ export const ChatPanel = ({
           </PromptInputBody>
           <PromptInputFooter className="flex justify-end">
             <PromptInputSubmit
-              disabled={!input.trim() || !status}
+              disabled={!input.trim() || !status || isLoading}
               className="h-9! w-9! p-0! rounded-xl! bg-foreground! text-background!"
             >
               <ArrowUp size={18} />
@@ -214,7 +214,6 @@ export const NodeDisplay = ({
   const Icon = nodeConfig.icon;
   const { status, output, toolCall, toolResult, error } = data;
 
-  console.log(toolResult, "toolResult");
   return (
     <div key={`${messageId}-node-${partIndex}`}>
       {/* Header */}

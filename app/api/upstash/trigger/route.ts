@@ -18,6 +18,10 @@ export async function POST(request: NextRequest) {
   try {
     const result = await client.trigger({
       url: `${BASE_URL}/api/workflow/chat`,
+      headers: {
+        "x-vercel-protection-bypass":
+          process.env.VERCEL_AUTOMATION_BYPASS_SECRET!,
+      },
       body: {
         workflowId,
         messages,

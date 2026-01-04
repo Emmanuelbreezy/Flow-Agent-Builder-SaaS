@@ -4,6 +4,7 @@ import { executeWorkflow } from "@/lib/workflow/execute-workflow";
 import { Node, Edge } from "@xyflow/react";
 import { UIMessage } from "ai";
 import prisma from "@/lib/prisma";
+import { Client } from "@upstash/qstash";
 
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
@@ -41,53 +42,64 @@ export const GET = async (req: Request) => {
   });
 };
 
-export const { POST } = serve(async (ctx) => {
-  const { workflowId, messages } = ctx.requestPayload as {
-    workflowId: string;
-    messages: UIMessage[];
-  };
-  const workflowRunId = ctx.workflowRunId;
-  const channel = realtime.channel(workflowRunId);
-  const message = messages[messages.length - 1];
-  const userInput =
-    message.role === "user" && message.parts[0].type === "text"
-      ? message.parts[0].text
-      : "";
+export const { POST } = serve(
+  async (ctx) => {
+    const { workflowId, messages } = ctx.requestPayload as {
+      workflowId: string;
+      messages: UIMessage[];
+    };
+    const workflowRunId = ctx.workflowRunId;
+    const channel = realtime.channel(workflowRunId);
+    const message = messages[messages.length - 1];
+    const userInput =
+      message.role === "user" && message.parts[0].type === "text"
+        ? message.parts[0].text
+        : "";
 
-  const { nodes, edges } = await ctx.run("fetch-database", async () => {
-    const workflowData = await prisma.workflow.findUnique({
-      where: { id: workflowId },
+    const { nodes, edges } = await ctx.run("fetch-database", async () => {
+      const workflowData = await prisma.workflow.findUnique({
+        where: { id: workflowId },
+      });
+      if (!workflowData) throw new Error("Workflow not found");
+      const obj = JSON.parse(workflowData.flowObject);
+      const nodes = obj.nodes as Node[];
+      const edges = obj.edges as Edge[];
+      return { nodes, edges };
     });
-    if (!workflowData) throw new Error("Workflow not found");
-    const obj = JSON.parse(workflowData.flowObject);
-    const nodes = obj.nodes as Node[];
-    const edges = obj.edges as Edge[];
-    return { nodes, edges };
-  });
 
-  await ctx.run("workflow-execution", async () => {
-    try {
-      // const workflowData = await prisma.workflow.findUnique({
-      //   where: { id: workflowId },
-      // });
-      // if (!workflowData) throw new Error("Workflow not found");
-      // const obj = JSON.parse(workflowData.flowObject);
-      // const nodes = obj.nodes as Node[];
-      // const edges = obj.edges as Edge[];
-      await executeWorkflow(
-        nodes,
-        edges,
-        userInput,
-        messages,
-        channel,
-        workflowRunId
-      );
-    } catch (error) {
-      console.error("Workflow execution error:", error);
-      throw error;
-    }
-  });
-});
+    await ctx.run("workflow-execution", async () => {
+      try {
+        // const workflowData = await prisma.workflow.findUnique({
+        //   where: { id: workflowId },
+        // });
+        // if (!workflowData) throw new Error("Workflow not found");
+        // const obj = JSON.parse(workflowData.flowObject);
+        // const nodes = obj.nodes as Node[];
+        // const edges = obj.edges as Edge[];
+        await executeWorkflow(
+          nodes,
+          edges,
+          userInput,
+          messages,
+          channel,
+          workflowRunId
+        );
+      } catch (error) {
+        console.error("Workflow execution error:", error);
+        throw error;
+      }
+    });
+  },
+  {
+    qstashClient: new Client({
+      token: process.env.QSTASH_TOKEN!,
+      headers: {
+        "x-vercel-protection-bypass":
+          process.env.VERCEL_AUTOMATION_BYPASS_SECRET!,
+      },
+    }),
+  }
+);
 
 //
 //

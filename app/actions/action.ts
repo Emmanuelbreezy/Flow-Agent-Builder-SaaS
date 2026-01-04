@@ -24,7 +24,6 @@ export async function streamAgentAction({
     | { type: "mcp"; serverId: string; tools: Array<{ name: string }> }
   >;
 }) {
-  console.log(selectedTools, "selectedTools");
   const modelMessages = await convertToModelMessages(history);
   const tools: Record<string, any> = {};
   const mcpClients: any[] = [];
