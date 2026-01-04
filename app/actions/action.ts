@@ -4,8 +4,60 @@ import { openrouter } from "@openrouter/ai-sdk-provider";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { webSearch } from "@exalabs/ai-sdk";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
-import { TOOLS } from "@/lib/workflow/constants";
 import prisma from "@/lib/prisma";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { decrypt, encrypt } from "@/lib/helper";
+
+//old without mcp
+// export async function streamAgentAction({
+//   model,
+//   instructions,
+//   history,
+//   jsonOutput,
+//   selectedTools,
+// }: {
+//   model: string;
+//   instructions: string;
+//   history: UIMessage[];
+//   jsonOutput: any;
+//   selectedTools: string[]
+// }) {
+//   const modelMessages = await convertToModelMessages(history);
+
+//   const setTools: Record<string, any> = {};
+//   if (selectedTools.includes("webSearch")) {
+//     setTools.webSearch = webSearch();
+//   }
+//   const tools = Object.keys(setTools).length > 0 ? setTools : undefined;
+
+//   // Build tool list text
+//   const toolListText = TOOLS.filter((t) => selectedTools.includes(t.id))
+//     .map((t) => `- ${t.id}: ${t.description}`)
+//     .join("\n");
+
+//   // Find the last user message
+//   const lastUserMsg = [...modelMessages]
+//     .reverse()
+//     .find((msg) => msg.role === "user");
+//   const lastUserQuestion = lastUserMsg?.content ?? "";
+
+//   // Platform system prompt
+//   const platformPrompt = `You are a helpful assistant. Always answer the last question from the user: "${lastUserQuestion}". **Must Use the following instructions: "${instructions}".${
+//     tools
+//       ? `\n\nAvailable tools:\n${toolListText}\n\nCall a tool by emitting a tool_call event if needed.`
+//       : ""
+//   }`;
+
+//   const result = streamText({
+//     model: openrouter.chat(model),
+//     system: platformPrompt,
+//     messages: modelMessages,
+//     tools: tools,
+//     stopWhen: stepCountIs(3),
+//     ...jsonOutput,
+//   });
+//   return result;
+// }
 
 export async function streamAgentAction({
   model,
@@ -18,43 +70,68 @@ export async function streamAgentAction({
   instructions: string;
   history: UIMessage[];
   jsonOutput: any;
-  selectedTools: string[];
+  selectedTools: Array<
+    | { type: "native"; value: string }
+    | { type: "mcp"; serverId: string; tools: Array<{ name: string }> }
+  >;
 }) {
+  console.log(selectedTools, "selectedTools");
   const modelMessages = await convertToModelMessages(history);
 
-  const setTools: Record<string, any> = {};
-  if (selectedTools.includes("webSearch")) {
-    setTools.webSearch = webSearch();
-  }
-  const tools = Object.keys(setTools).length > 0 ? setTools : undefined;
+  const tools: Record<string, any> = {};
 
-  // Build tool list text
-  const toolListText = TOOLS.filter((t) => selectedTools.includes(t.id))
-    .map((t) => `- ${t.id}: ${t.description}`)
-    .join("\n");
+  // Native tools
+  for (const t of selectedTools.filter((t) => t.type === "native")) {
+    if (t.value === "webSearch") tools.webSearch = webSearch();
+  }
+
+  // MCP tools
+  for (const t of selectedTools.filter((t) => t.type === "mcp")) {
+    const toolSet = await getMcpToolsByServerId(t.serverId);
+    console.log("Fetched toolSet from MCP:", Object.keys(toolSet));
+    for (const tool of t.tools) {
+      if (toolSet[tool.name]) tools[tool.name] = toolSet[tool.name];
+    }
+  }
+
+  const toolList = Object.entries(tools)
+    ?.map(([name]) => `- ${name}`)
+    ?.join("\n");
 
   // Find the last user message
-  const lastUserMsg = [...modelMessages]
-    .reverse()
-    .find((msg) => msg.role === "user");
-  const lastUserQuestion = lastUserMsg?.content ?? "";
+  const lastQuestion =
+    [...modelMessages].reverse().find((m) => m.role === "user")?.content || "";
 
-  // Platform system prompt
-  const platformPrompt = `You are a helpful assistant. Always answer the last question from the user: "${lastUserQuestion}". **Must Use the following instructions: "${instructions}".${
-    tools
-      ? `\n\nAvailable tools:\n${toolListText}\n\nCall a tool by emitting a tool_call event if needed.`
-      : ""
-  }`;
+  const systemPrompt =
+    `You are a helpful assistant. Always answer the last question from the user: "${lastQuestion}".
+  **Must Use the following instructions:
+  "${instructions}"**
+Last question: "${lastQuestion}"
+${toolList ? `\nAvailable tools:\n${toolList}` : ""}`.trim();
+
+  console.log(toolList, "toolList");
 
   const result = streamText({
     model: openrouter.chat(model),
-    system: platformPrompt,
+    system: systemPrompt,
     messages: modelMessages,
-    tools: tools,
-    stopWhen: stepCountIs(3),
+    tools: Object.keys(tools).length > 0 ? tools : undefined,
+    stopWhen: stepCountIs(5),
     ...jsonOutput,
   });
   return result;
+}
+
+export async function getMcpToolsByServerId(serverId: string) {
+  const server = await prisma.mcpServer.findUnique({
+    where: { id: serverId },
+  });
+  if (!server) throw new Error("MCP server not found");
+
+  const apiKey = server.token ? decrypt(server.token) : undefined;
+  const url = server.url;
+  const toolSet = await getMcpToolSet({ url, apiKey });
+  return toolSet; // raw object, or map to array if needed
 }
 
 //Mcp
@@ -97,24 +174,44 @@ export async function addMcpServer({
   url,
   apiKey,
   label,
-  userId,
+  approval,
 }: {
   url: string;
-  apiKey?: string;
+  apiKey: string;
   label: string;
-  userId: string;
+  approval: string;
 }) {
-  // Connect and get tools
-  const tools = await connectMcpServer({ url, apiKey });
-  const encryptedKey = "<ENCRYPTED_API_KEY>";
+  const session = await getKindeServerSession();
+  const user = await session.getUser();
+  if (!user) throw new Error("Unauthorized");
 
-  await prisma.mCPCredential.create({
-    data: {
-      userId,
-      serverLabel: label,
-      encryptedKey,
-    },
+  // Check for existing server
+  let server = await prisma.mcpServer.findFirst({
+    where: { userId: user.id, url },
   });
 
-  return { tools };
+  const encryptedKey = apiKey ? encrypt(apiKey) : "";
+  if (!server) {
+    server = await prisma.mcpServer.create({
+      data: {
+        userId: user.id,
+        label,
+        url,
+        approval,
+        token: encryptedKey,
+      },
+    });
+  } else {
+    // Update the API key and label/approval if needed
+    server = await prisma.mcpServer.update({
+      where: { id: server.id },
+      data: {
+        label,
+        approval,
+        token: encryptedKey,
+      },
+    });
+  }
+
+  return { serverId: server.id };
 }

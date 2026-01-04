@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Folder, WorkflowIcon } from "lucide-react";
+import { Settings2, WorkflowIcon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,9 +23,9 @@ const navItems = [
     icon: WorkflowIcon,
   },
   {
-    title: "Templates",
-    url: "/workflow/templates",
-    icon: Folder,
+    title: "Settings",
+    url: "/workflow/settings",
+    icon: Settings2,
   },
 ];
 

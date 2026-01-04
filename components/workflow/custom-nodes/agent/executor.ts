@@ -38,7 +38,6 @@ export async function executeAgent(
       : undefined;
 
   // Stream AI response
-
   const result = await streamAgentAction({
     model,
     instructions: replacedInstructions,
@@ -129,7 +128,9 @@ export async function executeAgent(
             nodeName: node.data?.name,
             status: "loading",
             toolResult: {
+              toolCallId: chunk.toolCallId,
               name: chunk.toolName,
+              result: chunk.output,
             },
           },
         });

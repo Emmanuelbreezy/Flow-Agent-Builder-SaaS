@@ -27,13 +27,13 @@ model Workflow {
 }
 
 
-model MCPCredential {
+model McpServer {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   userId       String
-  serverLabel  String
+  label        String
+  url          String
   approval     String
-  value        String // encrypted API key
+  token        String // encrypted API key
   createdAt    DateTime @default(now())
-
-  @@index([userId])
-}
+  updatedAt    DateTime @updatedAt
+  }

@@ -29,7 +29,6 @@ import { Plus, X, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MentionInputComponent } from "../../mention-input";
 import { JsonSchema } from "./json-schema";
-//import { MCPDialog } from "../../mcp/mcp-dialog";
 import { MCPToolType, MODELS, TOOLS } from "@/lib/workflow/constants";
 import { MCPDialog } from "../../mcp/mcp-dialog";
 
@@ -88,222 +87,240 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
     );
   };
 
-  const handleSaveMCP = (
-    label: string,
-    url: string,
-    credentialId: string,
-    approval: string,
-    selectedTools: MCPToolType[]
-  ) => {
+  const handleAddMCP = ({
+    label,
+    serverId,
+    approval,
+    selectedTools,
+  }: {
+    label: string;
+    serverId: string;
+    approval: string;
+    selectedTools: MCPToolType[];
+  }) => {
     handleChange("tools", [
       ...tools,
-      { type: "mcp", label, url, credentialId, approval, tools: selectedTools },
+      {
+        type: "mcp",
+        label,
+        serverId,
+        approval,
+        tools: selectedTools,
+      },
     ]);
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Agent Name</Label>
-        <Input
-          value={agentName}
-          onChange={(e) => setAgentName(e.target.value)}
-          onBlur={() => handleChange("name", agentName)}
-          placeholder="My Agent"
-          className="h-8"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>System Instructions</Label>
-        <MentionInputComponent
-          nodeId={id}
-          value={instructionValue}
-          placeholder="You are a helpful AI assistant..."
-          rows={2}
-          multiline
-          onChange={setInstructionValue}
-          onBlur={() => handleChange("instructions", instructionValue)}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Tools</Label>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button size="icon-sm" variant="outline" className="h-6 w-6">
-                <Plus className="size-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {TOOLS.filter(
-                (t) =>
-                  !tools.some(
-                    (tool: any) => tool.type === "native" && tool.value === t.id
-                  )
-              ).map((tool) => {
-                const Icon = tool.icon;
-                return (
-                  <DropdownMenuItem
-                    key={tool.id}
-                    onClick={() => handleAddTool(tool.id)}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{tool.name}</span>
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label>Agent Name</Label>
+          <Input
+            value={agentName}
+            onChange={(e) => setAgentName(e.target.value)}
+            onBlur={() => handleChange("name", agentName)}
+            placeholder="My Agent"
+            className="h-8"
+          />
         </div>
 
-        {tools.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {tools.map((tool: any, index: number) => {
-              const nativeTool =
-                tool.type === "native"
-                  ? TOOLS.find((t) => t.id === tool.value)
-                  : null;
-              const Icon = nativeTool?.icon;
-              const label =
-                tool.type === "native" ? nativeTool?.name : `${tool.label}`;
+        <div className="space-y-2">
+          <Label>System Instructions</Label>
+          <MentionInputComponent
+            nodeId={id}
+            value={instructionValue}
+            placeholder="You are a helpful AI assistant..."
+            rows={2}
+            multiline
+            onChange={setInstructionValue}
+            onBlur={() => handleChange("instructions", instructionValue)}
+          />
+        </div>
 
-              return (
-                <Badge
-                  key={index}
-                  variant={tool.type === "mcp" ? "outline" : "secondary"}
-                >
-                  {Icon && <Icon className="h-4 w-4" />}
-                  {label}
-                  <X
-                    className="size-3 ml-1 cursor-pointer hover:text-destructive"
-                    onClick={() => handleRemoveTool(index)}
-                  />
-                </Badge>
-              );
-            })}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Tools</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Button size="icon-sm" variant="outline" className="h-6 w-6">
+                  <Plus className="size-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {TOOLS.filter(
+                  (t) =>
+                    !tools.some(
+                      (tool: any) =>
+                        tool.type === "native" && tool.value === t.id
+                    )
+                ).map((tool) => {
+                  const Icon = tool.icon;
+                  return (
+                    <DropdownMenuItem
+                      key={tool.id}
+                      onClick={() => handleAddTool(tool.id)}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{tool.name}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {tools.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {tools.map((tool: any, index: number) => {
+                const nativeTool =
+                  tool.type === "native"
+                    ? TOOLS.find((t) => t.id === tool.value)
+                    : null;
+                const Icon = nativeTool?.icon;
+                const label =
+                  tool.type === "native" ? nativeTool?.name : `${tool.label}`;
+
+                return (
+                  <Badge key={index} variant="secondary">
+                    {Icon && <Icon className="h-4 w-4" />}
+                    {label}
+                    <button
+                      type="button"
+                      className="ml-1 hover:text-destructive"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveTool(index);
+                      }}
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label>Model</Label>
+          <Popover open={openModel} onOpenChange={setOpenModel}>
+            <PopoverTrigger>
+              <Button
+                variant="outline"
+                className="w-full justify-between h-8 text-xs"
+              >
+                {model
+                  ? MODELS.find((m) => m.value === model)?.label
+                  : MODELS[0]?.label}
+                <ChevronsUpDown className="size-3 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search model..." className="h-8" />
+                <CommandList>
+                  <CommandEmpty>No model found.</CommandEmpty>
+                  <CommandGroup>
+                    {MODELS.map((m) => (
+                      <CommandItem
+                        key={m.value}
+                        value={m.value}
+                        onSelect={(v) => {
+                          handleChange("model", v);
+                          setOpenModel(false);
+                        }}
+                      >
+                        {m.label}
+                        <Check
+                          className={cn(
+                            "ml-auto size-4",
+                            model === m.value ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label>Output Format</Label>
+          <Popover open={openFormat} onOpenChange={setOpenFormat}>
+            <PopoverTrigger>
+              <Button
+                variant="outline"
+                className="w-full justify-between h-8 text-xs"
+              >
+                {OUTPUT_FORMATS.find((f) => f.value === outputFormat)?.label}
+                <ChevronsUpDown className="size-3 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search format..." className="h-8" />
+                <CommandList>
+                  <CommandEmpty>No format found.</CommandEmpty>
+                  <CommandGroup>
+                    {OUTPUT_FORMATS.map((f) => (
+                      <CommandItem
+                        key={f.value}
+                        value={f.value}
+                        onSelect={(v) => {
+                          updateNodeData(id, {
+                            outputFormat: v,
+                            outputs: v === "text" ? ["output.text"] : [],
+                            responseSchema: v === "text" ? {} : responseSchema,
+                          });
+                          setOpenFormat(false);
+                        }}
+                      >
+                        {f.label}
+                        <Check
+                          className={cn(
+                            "ml-auto size-4",
+                            outputFormat === f.value
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {outputFormat === "json" && (
+          <div className="space-y-2 border-t pt-3">
+            <Label>JSON Schema</Label>
+            <JsonSchema
+              schema={responseSchema}
+              onChange={(value) => {
+                // Generate output schema
+                const newOutputSchema = Object.keys(
+                  value?.properties || {}
+                ).map((key) => `output.${key}`);
+                updateNodeData(id, {
+                  responseSchema: value,
+                  outputs: newOutputSchema,
+                });
+              }}
+            />
           </div>
         )}
       </div>
-
-      <div className="flex items-center justify-between">
-        <Label>Model</Label>
-        <Popover open={openModel} onOpenChange={setOpenModel}>
-          <PopoverTrigger>
-            <Button
-              variant="outline"
-              className="w-full justify-between h-8 text-xs"
-            >
-              {model
-                ? MODELS.find((m) => m.value === model)?.label
-                : MODELS[0]?.label}
-              <ChevronsUpDown className="size-3 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Search model..." className="h-8" />
-              <CommandList>
-                <CommandEmpty>No model found.</CommandEmpty>
-                <CommandGroup>
-                  {MODELS.map((m) => (
-                    <CommandItem
-                      key={m.value}
-                      value={m.value}
-                      onSelect={(v) => {
-                        handleChange("model", v);
-                        setOpenModel(false);
-                      }}
-                    >
-                      {m.label}
-                      <Check
-                        className={cn(
-                          "ml-auto size-4",
-                          model === m.value ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <Label>Output Format</Label>
-        <Popover open={openFormat} onOpenChange={setOpenFormat}>
-          <PopoverTrigger>
-            <Button
-              variant="outline"
-              className="w-full justify-between h-8 text-xs"
-            >
-              {OUTPUT_FORMATS.find((f) => f.value === outputFormat)?.label}
-              <ChevronsUpDown className="size-3 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Search format..." className="h-8" />
-              <CommandList>
-                <CommandEmpty>No format found.</CommandEmpty>
-                <CommandGroup>
-                  {OUTPUT_FORMATS.map((f) => (
-                    <CommandItem
-                      key={f.value}
-                      value={f.value}
-                      onSelect={(v) => {
-                        updateNodeData(id, {
-                          outputFormat: v,
-                          outputs: v === "text" ? ["output.text"] : [],
-                          responseSchema: v === "text" ? {} : responseSchema,
-                        });
-                        setOpenFormat(false);
-                      }}
-                    >
-                      {f.label}
-                      <Check
-                        className={cn(
-                          "ml-auto size-4",
-                          outputFormat === f.value ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {outputFormat === "json" && (
-        <div className="space-y-2 border-t pt-3">
-          <Label>JSON Schema</Label>
-          <JsonSchema
-            schema={responseSchema}
-            onChange={(value) => {
-              // Generate output schema
-              const newOutputSchema = Object.keys(value?.properties || {}).map(
-                (key) => `output.${key}`
-              );
-              updateNodeData(id, {
-                responseSchema: value,
-                outputs: newOutputSchema,
-              });
-            }}
-          />
-        </div>
-      )}
-
       <MCPDialog
         open={mcpDialogOpen}
         onOpenChange={setMcpDialogOpen}
-        onSave={handleSaveMCP}
+        onAdd={handleAddMCP}
       />
-    </div>
+    </>
   );
 };
 
