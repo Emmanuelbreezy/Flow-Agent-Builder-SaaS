@@ -403,7 +403,6 @@ export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
   timeout?: number;
 };
 export const CodeBlockCopyButton = ({
-  asChild,
   onCopy,
   onError,
   timeout = 2000,
@@ -428,12 +427,12 @@ export const CodeBlockCopyButton = ({
       setTimeout(() => setIsCopied(false), timeout);
     }, onError);
   };
-  if (asChild) {
-    return cloneElement(children as ReactElement, {
-      // @ts-expect-error - we know this is a button
-      onClick: copyToClipboard,
-    });
-  }
+  // if (asChild) {
+  //   return cloneElement(children as ReactElement, {
+  //     // @ts-expect-error - we know this is a button
+  //     onClick: copyToClipboard,
+  //   });
+  // }
   const Icon = isCopied ? CheckIcon : CopyIcon;
   return (
     <Button

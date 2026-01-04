@@ -2,7 +2,7 @@
 "use client";
 import React, { useState } from "react";
 import axios from "axios";
-import { AlertCircle, ArrowUp, Check, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowUp, Check, Sparkles, Square } from "lucide-react";
 import { UIMessage, useChat } from "@ai-sdk/react";
 import {
   Conversation,
@@ -45,6 +45,7 @@ import { nanoid } from "nanoid";
 import { createWorkflowTransport } from "@/lib/transport";
 import { cn } from "@/lib/utils";
 import { Loader, TextShimmerLoader } from "@/components/ui/loader";
+import { Button } from "@/components/ui/button";
 
 interface ChatPanelProps {
   workflowId: string;
@@ -59,15 +60,13 @@ export const ChatPanel = ({
 }: ChatPanelProps) => {
   const [input, setInput] = useState<string>("");
 
-  const { messages, sendMessage, status } = useChat<UIMessage>({
+  const { messages, sendMessage, status, stop } = useChat<UIMessage>({
     id: chatId ?? undefined,
     messages: initialMessages,
     transport: createWorkflowTransport({
       workflowId,
     }),
   });
-
-  console.log(messages, "messages");
 
   const isLoading =
     status === "submitted" ||
@@ -166,7 +165,6 @@ export const ChatPanel = ({
       )}
 
       {/* Input */}
-      {/* <div className="shrink-0 flex-[0.4] w-full px-4 pt-2  bg-background"> */}
       <div className="shrink-0 w-full flex-[0.4] px-4 py-4 bg-background border-t">
         <PromptInput className="shadow-md rounded-xl!" onSubmit={handleSubmit}>
           <PromptInputBody>
@@ -178,18 +176,34 @@ export const ChatPanel = ({
             />
           </PromptInputBody>
           <PromptInputFooter className="flex justify-end">
-            <PromptInputSubmit
-              disabled={!input.trim() || !status}
-              className="h-9! w-9! p-0! rounded-xl! bg-foreground! text-background!"
-            >
-              <ArrowUp size={18} />
-            </PromptInputSubmit>
+            {isLoading ? (
+              <StopButton stop={stop} />
+            ) : (
+              <PromptInputSubmit
+                disabled={!input.trim() || !status}
+                className="h-9! w-9! p-0! rounded-xl! bg-foreground! text-background!"
+              >
+                <ArrowUp size={18} />
+              </PromptInputSubmit>
+            )}
           </PromptInputFooter>
         </PromptInput>
       </div>
     </div>
   );
 };
+
+function StopButton({ stop }: { stop: () => void }) {
+  return (
+    <Button
+      size="icon"
+      className="bg-muted rounded-full dark:bg-black border cursor-pointer"
+      onClick={stop}
+    >
+      <Square size={14} className="fill-black dark:fill-white" />
+    </Button>
+  );
+}
 
 interface NodeDisplayProps {
   data: {

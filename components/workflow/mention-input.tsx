@@ -8,12 +8,7 @@ import { cn } from "@/lib/utils";
 import { BracesIcon } from "lucide-react";
 import { useWorkflow } from "@/context/workflow-context";
 
-import {
-  Command,
-  CommandList,
-  CommandItem,
-  CommandEmpty,
-} from "@/components/ui/command";
+import { Command, CommandList, CommandItem } from "@/components/ui/command";
 
 type Suggestion = {
   id: string;

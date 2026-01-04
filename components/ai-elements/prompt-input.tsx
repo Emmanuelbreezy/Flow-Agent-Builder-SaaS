@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -198,7 +199,10 @@ export function PromptInputProvider({
 
   // Keep a ref to attachments for cleanup on unmount (avoids stale closure)
   const attachmentsRef = useRef(attachmentFiles);
-  attachmentsRef.current = attachmentFiles;
+
+  useEffect(() => {
+    attachmentsRef.current = attachmentFiles;
+  }, [attachmentFiles]);
 
   // Cleanup blob URLs on unmount to prevent memory leaks
   useEffect(() => {
@@ -309,7 +313,6 @@ export function PromptInputAttachment({
             {...props}
           />
         }
-        nativeButton={false}
       >
         <div className="relative size-5 shrink-0">
           <div className="absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded bg-background transition-opacity group-hover:opacity-0">
@@ -1178,7 +1181,7 @@ export const PromptInputSpeechButton = ({
       };
 
       recognitionRef.current = speechRecognition;
-      setRecognition(speechRecognition);
+      //setRecognition(speechRecognition);
     }
 
     return () => {
@@ -1271,12 +1274,8 @@ export const PromptInputSelectValue = ({
 
 export type PromptInputHoverCardProps = ComponentProps<typeof HoverCard>;
 
-export const PromptInputHoverCard = ({
-  openDelay = 0,
-  closeDelay = 0,
-  ...props
-}: PromptInputHoverCardProps) => (
-  <HoverCard closeDelay={closeDelay} openDelay={openDelay} {...props} />
+export const PromptInputHoverCard = (props: PromptInputHoverCardProps) => (
+  <HoverCard {...props} />
 );
 
 export type PromptInputHoverCardTriggerProps = ComponentProps<

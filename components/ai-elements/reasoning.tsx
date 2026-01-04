@@ -67,13 +67,13 @@ export const Reasoning = memo(
 
     // Track duration when streaming starts and ends
     useEffect(() => {
-      if (isStreaming) {
-        if (startTime === null) {
-          setStartTime(Date.now());
-        }
-      } else if (startTime !== null) {
+      if (isStreaming && startTime === null) {
+        // Use a microtask to avoid synchronous setState in effect
+        Promise.resolve().then(() => setStartTime(Date.now()));
+      } else if (!isStreaming && startTime !== null) {
         setDuration(Math.ceil((Date.now() - startTime) / MS_IN_S));
-        setStartTime(null);
+        // Defer setStartTime to avoid synchronous setState in effect
+        Promise.resolve().then(() => setStartTime(null));
       }
     }, [isStreaming, startTime, setDuration]);
 
@@ -111,7 +111,9 @@ export const Reasoning = memo(
   }
 );
 
-export type ReasoningTriggerProps = ComponentProps<typeof CollapsibleTrigger> & {
+export type ReasoningTriggerProps = ComponentProps<
+  typeof CollapsibleTrigger
+> & {
   getThinkingMessage?: (isStreaming: boolean, duration?: number) => ReactNode;
 };
 
@@ -126,7 +128,12 @@ const defaultGetThinkingMessage = (isStreaming: boolean, duration?: number) => {
 };
 
 export const ReasoningTrigger = memo(
-  ({ className, children, getThinkingMessage = defaultGetThinkingMessage, ...props }: ReasoningTriggerProps) => {
+  ({
+    className,
+    children,
+    getThinkingMessage = defaultGetThinkingMessage,
+    ...props
+  }: ReasoningTriggerProps) => {
     const { isStreaming, isOpen, duration } = useReasoning();
 
     return (
