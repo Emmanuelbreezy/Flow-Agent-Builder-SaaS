@@ -90,12 +90,10 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
   const handleAddMCP = ({
     label,
     serverId,
-    approval,
     selectedTools,
   }: {
     label: string;
     serverId: string;
-    approval: string;
     selectedTools: MCPToolType[];
   }) => {
     handleChange("tools", [
@@ -104,7 +102,6 @@ export const AgentSettings = ({ data, id }: AgentSettingsProps) => {
         type: "mcp",
         label,
         serverId,
-        approval,
         tools: selectedTools,
       },
     ]);

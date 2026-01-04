@@ -8,57 +8,6 @@ import prisma from "@/lib/prisma";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { decrypt, encrypt } from "@/lib/helper";
 
-//old without mcp
-// export async function streamAgentAction({
-//   model,
-//   instructions,
-//   history,
-//   jsonOutput,
-//   selectedTools,
-// }: {
-//   model: string;
-//   instructions: string;
-//   history: UIMessage[];
-//   jsonOutput: any;
-//   selectedTools: string[]
-// }) {
-//   const modelMessages = await convertToModelMessages(history);
-
-//   const setTools: Record<string, any> = {};
-//   if (selectedTools.includes("webSearch")) {
-//     setTools.webSearch = webSearch();
-//   }
-//   const tools = Object.keys(setTools).length > 0 ? setTools : undefined;
-
-//   // Build tool list text
-//   const toolListText = TOOLS.filter((t) => selectedTools.includes(t.id))
-//     .map((t) => `- ${t.id}: ${t.description}`)
-//     .join("\n");
-
-//   // Find the last user message
-//   const lastUserMsg = [...modelMessages]
-//     .reverse()
-//     .find((msg) => msg.role === "user");
-//   const lastUserQuestion = lastUserMsg?.content ?? "";
-
-//   // Platform system prompt
-//   const platformPrompt = `You are a helpful assistant. Always answer the last question from the user: "${lastUserQuestion}". **Must Use the following instructions: "${instructions}".${
-//     tools
-//       ? `\n\nAvailable tools:\n${toolListText}\n\nCall a tool by emitting a tool_call event if needed.`
-//       : ""
-//   }`;
-
-//   const result = streamText({
-//     model: openrouter.chat(model),
-//     system: platformPrompt,
-//     messages: modelMessages,
-//     tools: tools,
-//     stopWhen: stepCountIs(3),
-//     ...jsonOutput,
-//   });
-//   return result;
-// }
-
 export async function streamAgentAction({
   model,
   instructions,
@@ -108,8 +57,6 @@ export async function streamAgentAction({
   "${instructions}"**
 Last question: "${lastQuestion}"
 ${toolList ? `\nAvailable tools:\n${toolList}` : ""}`.trim();
-
-  console.log(toolList, "toolList");
 
   const result = streamText({
     model: openrouter.chat(model),
@@ -177,12 +124,10 @@ export async function addMcpServer({
   url,
   apiKey,
   label,
-  approval,
 }: {
   url: string;
   apiKey: string;
   label: string;
-  approval: string;
 }) {
   const session = await getKindeServerSession();
   const user = await session.getUser();
@@ -200,7 +145,6 @@ export async function addMcpServer({
         userId: user.id,
         label,
         url,
-        approval,
         token: encryptedKey,
       },
     });
@@ -210,7 +154,6 @@ export async function addMcpServer({
       where: { id: server.id },
       data: {
         label,
-        approval,
         token: encryptedKey,
       },
     });
@@ -218,6 +161,57 @@ export async function addMcpServer({
 
   return { serverId: server.id };
 }
+
+//old without mcp
+// export async function streamAgentAction({
+//   model,
+//   instructions,
+//   history,
+//   jsonOutput,
+//   selectedTools,
+// }: {
+//   model: string;
+//   instructions: string;
+//   history: UIMessage[];
+//   jsonOutput: any;
+//   selectedTools: string[]
+// }) {
+//   const modelMessages = await convertToModelMessages(history);
+
+//   const setTools: Record<string, any> = {};
+//   if (selectedTools.includes("webSearch")) {
+//     setTools.webSearch = webSearch();
+//   }
+//   const tools = Object.keys(setTools).length > 0 ? setTools : undefined;
+
+//   // Build tool list text
+//   const toolListText = TOOLS.filter((t) => selectedTools.includes(t.id))
+//     .map((t) => `- ${t.id}: ${t.description}`)
+//     .join("\n");
+
+//   // Find the last user message
+//   const lastUserMsg = [...modelMessages]
+//     .reverse()
+//     .find((msg) => msg.role === "user");
+//   const lastUserQuestion = lastUserMsg?.content ?? "";
+
+//   // Platform system prompt
+//   const platformPrompt = `You are a helpful assistant. Always answer the last question from the user: "${lastUserQuestion}". **Must Use the following instructions: "${instructions}".${
+//     tools
+//       ? `\n\nAvailable tools:\n${toolListText}\n\nCall a tool by emitting a tool_call event if needed.`
+//       : ""
+//   }`;
+
+//   const result = streamText({
+//     model: openrouter.chat(model),
+//     system: platformPrompt,
+//     messages: modelMessages,
+//     tools: tools,
+//     stopWhen: stepCountIs(3),
+//     ...jsonOutput,
+//   });
+//   return result;
+// }
 
 //
 //

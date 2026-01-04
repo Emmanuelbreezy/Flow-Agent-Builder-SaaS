@@ -32,7 +32,6 @@ model McpServer {
   userId       String
   label        String
   url          String
-  approval     String
   token        String // encrypted API key
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

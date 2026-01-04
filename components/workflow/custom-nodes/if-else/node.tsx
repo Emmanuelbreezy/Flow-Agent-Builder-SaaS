@@ -2,7 +2,7 @@
 
 import React from "react";
 import { GitBranch } from "lucide-react";
-import { Position, NodeProps, useReactFlow } from "@xyflow/react";
+import { Position, NodeProps } from "@xyflow/react";
 import WorkflowNode from "../../workflow-node";
 import { BaseHandle } from "../../react-flow/base-handle";
 import { IfElseSettings } from "./settings";
@@ -15,20 +15,16 @@ interface Condition {
 }
 
 export const IfElseNode = ({ data, selected, id }: NodeProps) => {
-  const { deleteElements } = useReactFlow();
   const conditions = (data.conditions as Condition[]) || [{ condition: "" }];
   const bgcolor = (data?.color as string) || "bg-orange-500";
 
   const conditionStyle =
     "relative flex items-center justify-end p-2  rounded-md bg-muted/30 border border-dashed border-border text-[11px] font-medium text-muted-foreground whitespace-nowrap";
 
-  const handleDelete = () => {
-    deleteElements({ nodes: [{ id }] });
-  };
-
   return (
     <>
       <WorkflowNode
+        nodeId={id}
         label="If/else"
         subText="Condition"
         className="w-full"
@@ -39,7 +35,6 @@ export const IfElseNode = ({ data, selected, id }: NodeProps) => {
         settingsTitle="If / Else"
         settingsDescription="Create conditions to branch your workflow"
         settingComponent={<IfElseSettings id={id} data={data} />}
-        onDelete={handleDelete}
       >
         {conditions?.map((condition: Condition, index: number) => {
           const condition_merge = `${condition.variable} ${condition.operator} ${condition.value}`;

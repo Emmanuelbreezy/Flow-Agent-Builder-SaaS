@@ -31,7 +31,6 @@ interface MCPDialogProps {
   onAdd: (data: {
     label: string;
     serverId: string;
-    approval: string;
     selectedTools: MCPToolType[];
   }) => void;
   initialTools?: MCPToolType[];
@@ -45,7 +44,6 @@ export function MCPDialog({ open, onOpenChange, onAdd }: MCPDialogProps) {
   const [loading, setLoading] = useState(false);
   const [tools, setTools] = useState<MCPToolType[]>([]);
   const [selectedTools, setSelectedTools] = useState<Set<string>>(new Set());
-  const [approval, setApproval] = useState<string>("always");
 
   const handleConnect = async () => {
     setLoading(true);
@@ -76,12 +74,10 @@ export function MCPDialog({ open, onOpenChange, onAdd }: MCPDialogProps) {
         url,
         apiKey,
         label,
-        approval,
       });
       onAdd({
         label,
         serverId,
-        approval,
         selectedTools: selected,
       });
       onOpenChange(false);
@@ -117,7 +113,7 @@ export function MCPDialog({ open, onOpenChange, onAdd }: MCPDialogProps) {
   return (
     <div>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg " overlayClass="bg-black/60!">
+        <DialogContent className="max-w-lg " overlayClass="bg-black/60! z-999!">
           {step === "connect" ? (
             <div className="p-8">
               <div className="flex flex-col items-center mb-6">
@@ -205,31 +201,6 @@ export function MCPDialog({ open, onOpenChange, onAdd }: MCPDialogProps) {
                   <span className="font-semibold text-base">{label}</span>
                 </div>
                 <span className="text-xs text-muted-foreground">{url}</span>
-              </div>
-              <div className="mb-4">
-                <Label className="text-xs">Approval</Label>
-                <Select
-                  value={approval}
-                  items={[
-                    { value: "always", label: "Always require approval" },
-                    { value: "never", label: "Never require approval" },
-                  ]}
-                  onValueChange={(value) => {
-                    if (value !== null) setApproval(value);
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="always" label="Always require approval">
-                      Always require approval for all tool calls
-                    </SelectItem>
-                    <SelectItem value="never" label="Never require approval">
-                      Never require approval
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div className="mb-4">
                 <div className="font-semibold text-sm mb-2">TOOLS</div>

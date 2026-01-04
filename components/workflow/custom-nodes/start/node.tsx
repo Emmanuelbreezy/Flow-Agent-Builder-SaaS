@@ -12,6 +12,7 @@ export const StartNode = (node: NodeProps) => {
   return (
     <>
       <WorkflowNode
+        nodeId={id}
         label={"Start"}
         subText="Trigger"
         className="min-w-28!"

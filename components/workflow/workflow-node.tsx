@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { ButtonGroup } from "../ui/button-group";
 import { NodeStatusIndicator } from "./react-flow/node-status-indicator";
 import { BaseHandle } from "./react-flow/base-handle";
-import { Position } from "@xyflow/react";
+import { Position, useReactFlow } from "@xyflow/react";
 import {
   Dialog,
   DialogContent,
@@ -20,8 +20,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { toast } from "sonner";
 
 interface WorkflowNodeProps {
+  nodeId: string;
   label: string;
   subText: string;
   icon: LucideIcon;
@@ -35,10 +37,10 @@ interface WorkflowNodeProps {
   settingComponent?: React.ReactNode;
   settingsTitle?: string;
   settingsDescription?: string;
-  onDelete?: () => void;
 }
 
 const WorkflowNode = ({
+  nodeId,
   label,
   subText,
   isDeletable = true,
@@ -52,9 +54,18 @@ const WorkflowNode = ({
   settingComponent,
   settingsTitle,
   settingsDescription,
-  onDelete,
 }: WorkflowNodeProps) => {
+  const { deleteElements } = useReactFlow();
+
   const [settingsOpen, setSettingsOpen] = React.useState(false);
+
+  const onDelete = () => {
+    if (!isDeletable) {
+      toast.error("Cannot delete this node");
+      return; // Prevent deleting the node
+    }
+    deleteElements({ nodes: [{ id: nodeId }] });
+  };
 
   return (
     <>
@@ -156,7 +167,7 @@ const WorkflowNode = ({
         <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
           <DialogContent
             className="max-w-md!  px-0! pb-2!"
-            overlayClass="bg-black/5! backdrop-blur-none!"
+            overlayClass="bg-black/10! backdrop-blur-none!"
           >
             <DialogHeader className="px-4">
               <DialogTitle>{settingsTitle || `${label} Settings`}</DialogTitle>

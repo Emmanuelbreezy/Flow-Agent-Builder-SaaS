@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await client.trigger({
-      url: `${BASE_URL}/api/workflow/${workflowId}/chat`,
+      url: `${BASE_URL}/api/workflow/chat`,
       body: {
         workflowId,
         messages,
