@@ -14,7 +14,6 @@
     "@ai-sdk/mcp": "^1.0.2",
     "@ai-sdk/react": "^3.0.3",
     "@base-ui/react": "^1.0.0",
-    "@delcui/react-mentions": "^1.0.3",
     "@diceui/tags-input": "^0.7.2",
     "@exalabs/ai-sdk": "^1.0.5",
     "@hookform/resolvers": "^5.2.2",

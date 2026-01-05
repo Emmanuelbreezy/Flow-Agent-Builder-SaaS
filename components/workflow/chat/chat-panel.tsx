@@ -111,22 +111,11 @@ export const ChatPanel = ({
                       //   );
                       // }
                       case "data-workflow-node":
-                        const data = part.data as {
-                          id: string;
-                          nodeType: NodeType;
-                          nodeName: string;
-                          status: "loading" | "complete";
-                          state: "approval-requested" | "approval-responded";
-                          output?: any;
-                          eventId?: string;
-                        };
-
+                        const data = part.data as any;
                         return (
                           <NodeDisplay
                             key={`${message.id}-workflow-node-${i}`}
                             data={data}
-                            messageId={message.id}
-                            partIndex={i}
                           />
                         );
 
@@ -188,82 +177,113 @@ export const ChatPanel = ({
   );
 };
 
-interface NodeDisplayProps {
+export interface NodeDisplayProps {
   data: {
     id: string;
     nodeType: NodeType;
     nodeName: string;
+    type: "text-delta" | "tool-call" | "tool-result";
     status: "loading" | "error" | "complete";
-    reasoning?: string;
-    toolCall?: { name: string };
-    toolResult?: { name: string; result: any };
+    delta?: any;
+    toolCall?: {
+      name: string;
+    };
+    toolResult?: {
+      name: string;
+      result: any;
+    };
     output?: any;
     error?: any;
   };
-  messageId: string;
-  partIndex: number;
 }
 
-export const NodeDisplay = ({
-  data,
-  messageId,
-  partIndex,
-}: NodeDisplayProps) => {
+export const NodeDisplay = ({ data }: NodeDisplayProps) => {
   const nodeConfig = getNodeConfig(data.nodeType);
+  const [text, setText] = useState("");
+
+  // Always call hooks before any conditional return
+  React.useEffect(() => {
+    if (data.type === "text-delta" && data.delta) {
+      setText((prev) => prev + data.delta);
+    }
+  }, [data.type, data.delta]);
+
   if (!nodeConfig) return null;
+
   const Icon = nodeConfig.icon;
-  const { status, output, toolCall, toolResult, error } = data;
+  const { status, output, error, type, toolCall, toolResult } = data;
+
+  const Header = (
+    <div
+      className={cn(
+        "px-2 py-2 flex items-center gap-2",
+        status === "loading" && "animate-pulse"
+      )}
+    >
+      {status === "loading" ? (
+        <Spinner />
+      ) : status === "error" ? (
+        <AlertCircle className="h-4 w-4 text-destructive" />
+      ) : (
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      )}
+      <span className="text-sm font-medium">{data.nodeName}</span>
+    </div>
+  );
+
+  const renderBody = () => {
+    switch (type) {
+      case "text-delta":
+        return (
+          <div className="px-3 py-2">
+            <MessageResponse>{text}</MessageResponse>
+          </div>
+        );
+
+      case "tool-call":
+        return (
+          <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border">
+            <TextShimmerLoader text={`Calling ${toolCall?.name}...`} />
+          </div>
+        );
+
+      case "tool-result":
+        return (
+          <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border space-y-1">
+            <span className="text-sm">Used {toolResult?.name}</span>
+            <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+              {JSON.stringify(toolResult?.result, null, 2)}
+            </pre>
+          </div>
+        );
+
+      default:
+        return (
+          <>
+            {status === "complete" && output && (
+              <div className="px-3 py-2">
+                <MessageResponse>
+                  {typeof output === "string"
+                    ? output
+                    : JSON.stringify(output, null, 2)}
+                </MessageResponse>
+              </div>
+            )}
+
+            {status === "error" && (
+              <div className="mx-3 my-2 p-3 bg-destructive/10 text-destructive rounded-md text-xs">
+                {JSON.stringify(error)}
+              </div>
+            )}
+          </>
+        );
+    }
+  };
 
   return (
-    <div key={`${messageId}-node-${partIndex}`}>
-      {/* Header */}
-      <div
-        className={cn(
-          `px-1 py-2 flex items-center gap-2`,
-          status === "loading" && "animate-pulse"
-        )}
-      >
-        {status === "loading" ? (
-          <Spinner />
-        ) : status === "error" ? (
-          <AlertCircle className="text-destructive h-4 w-4" />
-        ) : (
-          <Icon className="h-4 w-4" />
-        )}
-        <span className="text-sm font-medium">{data.nodeName}</span>
-      </div>
-      {/* Content */}
-      <div>
-        {toolCall || toolResult ? (
-          <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border flex items-center gap-2">
-            {toolResult ? (
-              <>
-                <Check className="size-4 text-green-600" />
-                <span className="text-sm">Used {toolResult.name}</span>
-              </>
-            ) : (
-              <TextShimmerLoader text={`Calling ${toolCall?.name}...`} />
-            )}
-          </div>
-        ) : null}
-        {output && (
-          <div className="px-3 py-2">
-            <MessageResponse>
-              {typeof output === "string"
-                ? output
-                : JSON.stringify(output, null, 2)}
-            </MessageResponse>
-          </div>
-        )}
-
-        {status === "error" && (
-          <div className="p-3 bg-destructive/10 text-destructive rounded-md">
-            {JSON.stringify({
-              error,
-            })}
-          </div>
-        )}
-      </div>
+    <div>
+      {Header}
+      {renderBody()}
     </div>
   );
 };
@@ -280,6 +300,86 @@ export const NodeDisplay = ({
 //
 //
 //
+
+// interface NodeDisplayProps {
+//   data: {
+//     id: string;
+//     nodeType: NodeType;
+//     nodeName: string;
+//     status: "loading" | "error" | "complete";
+//     reasoning?: string;
+//     toolCall?: { name: string };
+//     toolResult?: { name: string; result: any };
+//     output?: any;
+//     error?: any;
+//   };
+//   messageId: string;
+//   partIndex: number;
+// }
+
+// export const NodeDisplay = ({
+//   data,
+//   messageId,
+//   partIndex,
+// }: NodeDisplayProps) => {
+//   const nodeConfig = getNodeConfig(data.nodeType);
+//   if (!nodeConfig) return null;
+//   const Icon = nodeConfig.icon;
+//   const { status, output, toolCall, toolResult, error } = data;
+
+//   return (
+//     <div key={`${messageId}-node-${partIndex}`}>
+//       {/* Header */}
+//       <div
+//         className={cn(
+//           `px-1 py-2 flex items-center gap-2`,
+//           status === "loading" && "animate-pulse"
+//         )}
+//       >
+//         {status === "loading" ? (
+//           <Spinner />
+//         ) : status === "error" ? (
+//           <AlertCircle className="text-destructive h-4 w-4" />
+//         ) : (
+//           <Icon className="h-4 w-4" />
+//         )}
+//         <span className="text-sm font-medium">{data.nodeName}</span>
+//       </div>
+//       {/* Content */}
+//       <div>
+//         {toolCall || toolResult ? (
+//           <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border flex items-center gap-2">
+//             {toolResult ? (
+//               <>
+//                 <Check className="size-4 text-green-600" />
+//                 <span className="text-sm">Used {toolResult.name}</span>
+//               </>
+//             ) : (
+//               <TextShimmerLoader text={`Calling ${toolCall?.name}...`} />
+//             )}
+//           </div>
+//         ) : null}
+//         {output && (
+//           <div className="px-3 py-2">
+//             <MessageResponse>
+//               {typeof output === "string"
+//                 ? output
+//                 : JSON.stringify(output, null, 2)}
+//             </MessageResponse>
+//           </div>
+//         )}
+
+//         {status === "error" && (
+//           <div className="p-3 bg-destructive/10 text-destructive rounded-md">
+//             {JSON.stringify({
+//               error,
+//             })}
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
 interface UserApprovalProps {
   data: {
     id: string;

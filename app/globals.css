@@ -14,6 +14,11 @@
   color: var(--primary) !important;
 }
 
+/* .dice--mention > span {
+  background: var(--input) !important;
+  color: var(--primary) !important;
+} */
+
 /* .relative__highlighter {
   max-height: 300px;
 } */

@@ -6,8 +6,7 @@ import { cn } from "@/lib/utils";
 
 const CommentNode = ({ data, id }: NodeProps) => {
   const { updateNodeData } = useReactFlow();
-  const comment = data?.comment as string;
-
+  const [comment, setComment] = React.useState<string>(data?.comment as string);
   const handleCommentChange = (value: string) => {
     updateNodeData(id, { comment: value });
   };
@@ -27,10 +26,11 @@ const CommentNode = ({ data, id }: NodeProps) => {
     >
       <Textarea
         value={comment || ""}
-        onChange={(e) => handleCommentChange(e.target.value)}
+        onChange={(e) => setComment(e.target.value)}
+        onBlur={() => handleCommentChange(comment)}
         placeholder="write a comment..."
-        className="w-full h-full px-1! resize-none border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-xs! shadow-none overflow-auto scrollbar-thin! scrollbar-thumb-gray-400! scrollbar-track-transparent
-       max-h-37.5 min-h-20"
+        className="w-full h-full px-1! resize-none border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-xs! shadow-none overflow-auto
+       max-h-37.5 min-h-20 dark:text-black"
       />
     </div>
   );

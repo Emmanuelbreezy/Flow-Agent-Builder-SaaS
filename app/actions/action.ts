@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 import { openrouter } from "@openrouter/ai-sdk-provider";
+import { google } from "@ai-sdk/google";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { webSearch } from "@exalabs/ai-sdk";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
@@ -57,8 +58,9 @@ export async function streamAgentAction({
 Last question: "${lastQuestion}"
 ${toolList ? `\nAvailable tools:\n${toolList}` : ""}`.trim();
 
+  //model: openrouter.chat(model),
   const result = streamText({
-    model: openrouter.chat(model),
+    model: google(model),
     system: systemPrompt,
     messages: modelMessages,
     tools: Object.keys(tools).length > 0 ? tools : undefined,

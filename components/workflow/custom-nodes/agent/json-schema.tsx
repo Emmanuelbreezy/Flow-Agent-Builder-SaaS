@@ -104,6 +104,12 @@ export function JsonSchema({ schema, onChange }: JsonSchemaProps) {
                 <Label className="text-xs">Type</Label>
                 <Select
                   value={field.type}
+                  items={[
+                    { value: SchemaType.STRING, label: "String" },
+                    { value: SchemaType.NUMBER, label: "Number" },
+                    { value: SchemaType.BOOLEAN, label: "Boolean" },
+                    { value: SchemaType.ENUM, label: "Enum" },
+                  ]}
                   onValueChange={(v) => updateField(i, "type", v)}
                 >
                   <SelectTrigger className="text-xs h-8! py-0!">

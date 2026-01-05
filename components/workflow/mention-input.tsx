@@ -66,44 +66,54 @@ export function MentionInputComponent({
     onChange(value + "{{");
   };
 
-  const wrapperClass = cn(
-    "relative w-full  rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow]",
-    "focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",
-    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
-    "aria-invalid:border-destructive dark:aria-invalid:border-destructive/50",
-    "disabled:cursor-not-allowed disabled:opacity-50",
-    multiline ? "min-h-18" : "h-9",
-    "p-2",
-    "max-h-64! ",
-    className
-  );
-
   const mentionsStyle: any = {
     control: {
       backgroundColor: "transparent",
+      fontSize: 14,
+      lineHeight: "20px",
+      fontFamily: "inherit",
+      border: "none",
     },
+
     highlighter: {
-      border: 0,
-      pointerEvents: "none",
-      zIndex: 999,
-      color: "inherit",
-      backgroundColor: "transparent",
-      //maxHeight: multiline ? "300px" : "none",
+      padding: "8px",
+      minHeight: 120,
+      maxHeight: 200,
+      overflowY: "auto",
+      boxSizing: "border-box",
+      whiteSpace: "pre-wrap",
+      wordWrap: "break-word",
+      fontSize: 14,
+      lineHeight: "20px",
+      fontFamily: "inherit",
     },
+
     input: {
-      background: "transparent",
-      border: 0,
+      padding: "8px",
+      minHeight: 120,
+      maxHeight: 200,
+      overflowY: "auto",
+      boxSizing: "border-box",
+      border: "none",
       outline: "none",
+      resize: "none",
+      backgroundColor: "transparent",
       color: "inherit",
-      //padding: multiline ? "0.5rem 0.625rem" : "0.25rem 0.625rem",
-      resize: multiline ? "vertical" : "none",
-      minHeight: multiline ? rows * 24 : undefined,
-      fontSize: "inherit",
+      whiteSpace: "pre-wrap",
+      wordWrap: "break-word",
+      fontSize: 14,
+      lineHeight: "20px",
+      fontFamily: "inherit",
     },
   };
 
   return (
-    <div className={wrapperClass}>
+    <div
+      className={cn(
+        "relative w-full rounded-md border border-input bg-background text-sm text-foreground",
+        className
+      )}
+    >
       <MentionsInput
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -112,20 +122,8 @@ export function MentionInputComponent({
         placeholder={placeholder}
         spellCheck="false"
         style={mentionsStyle}
-        className={cn(
-          "relative w-full h-auto",
-          "[&_textarea]:text-base [&_textarea]:md:text-sm",
-          "[&_textarea]:placeholder:text-muted-foreground",
-          "[&_textarea]:w-full [&_textarea]:outline-none",
-          "[&_textarea]:max-h-60 [&_textarea]:overflow-y-auto!"
-        )}
-        allowSuggestionsAboveCursor
-        forceSuggestionsAboveCursor
         customSuggestionsContainer={(children) => (
-          <div
-            className="fixed bg-popover z-999! min-w-64 max-w-80 rounded-lg border shadow-lg right-10!
-"
-          >
+          <div className="fixed bg-popover z-999! min-w-64 max-w-2xl rounded-lg border shadow-lg right-10!">
             <Command>
               <CommandList className="max-h-64 overflow-y-auto">
                 {children}
@@ -133,26 +131,14 @@ export function MentionInputComponent({
             </Command>
           </div>
         )}
-        // customSuggestionsContainer={(children) => (
-        //   <div className="z-999 min-w-64 max-w-80 rounded-lg border border-border bg-popover shadow-md inset-y-0">
-        //     <Command>
-        //       <CommandList className=" overflow-y-auto">
-        //         {React.Children.count(children) === 0 && (
-        //           <CommandEmpty>No variables found</CommandEmpty>
-        //         )}
-        //         {children}
-        //       </CommandList>
-        //     </Command>
-        //   </div>
-        // )}
       >
         <Mention
           trigger="{{"
           data={suggestions}
           markup="{{__id__}}"
           displayTransform={(id) => `{{${id}}}`}
-          appendSpaceOnAdd={true}
-          className="mention-token"
+          appendSpaceOnAdd
+          className="mentions__mention bg-primary/20!"
           renderSuggestion={(entry, _search, _highlighted, _index, focused) => (
             <CommandItem
               value={entry.display}

@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node } from "@xyflow/react";
 import { convertJsonSchemaToZod } from "zod-from-json-schema";
-import { convertToModelMessages, Output } from "ai";
+import { Output } from "ai";
 import { replaceVariables } from "@/lib/helper";
 import { MODELS } from "@/lib/workflow/constants";
 import { ExecutorContextType, ExecutorResultType } from "@/types/workflow";
 import { streamAgentAction } from "@/app/actions/action";
-
-// Dynamic import for Tavily (server-side only)
 
 export async function executeAgent(
   node: Node,
@@ -68,21 +66,6 @@ export async function executeAgent(
   }
 
   let fullText = "";
-  // for await (const chunk of result.textStream) {
-  //   fullText += chunk;
-
-  //   await channel.emit("workflow.chunk", {
-  //     type: "data-workflow-node",
-  //     id: node.id,
-  //     data: {
-  //       id: node.id,
-  //       nodeType: node.type,
-  //       nodeName: node.data?.name,
-  //       status: "loading",
-  //       output: fullText,
-  //     },
-  //   });
-  // }
 
   // Stream all events
   for await (const chunk of result.fullStream) {
@@ -97,7 +80,8 @@ export async function executeAgent(
             nodeType: node.type,
             nodeName: node.data?.name,
             status: "loading",
-            output: fullText,
+            type: "text-delta",
+            delta: chunk.text,
           },
         });
         break;
@@ -111,6 +95,7 @@ export async function executeAgent(
             nodeType: node.type,
             nodeName: node.data?.name,
             status: "loading",
+            type: "tool-call",
             toolCall: {
               name: chunk.toolName,
             },
@@ -127,25 +112,12 @@ export async function executeAgent(
             nodeType: node.type,
             nodeName: node.data?.name,
             status: "loading",
+            type: "tool-result",
             toolResult: {
               toolCallId: chunk.toolCallId,
               name: chunk.toolName,
               result: chunk.output,
             },
-          },
-        });
-        break;
-
-      case "finish":
-        await channel.emit("workflow.chunk", {
-          type: "data-workflow-node",
-          id: node.id,
-          data: {
-            id: node.id,
-            nodeType: node.type,
-            nodeName: node.data?.name,
-            status: "complete",
-            output: fullText,
           },
         });
         break;
@@ -164,7 +136,21 @@ export async function executeAgent(
 //
 //
 //
+// for await (const chunk of result.textStream) {
+//   fullText += chunk;
 
+//   await channel.emit("workflow.chunk", {
+//     type: "data-workflow-node",
+//     id: node.id,
+//     data: {
+//       id: node.id,
+//       nodeType: node.type,
+//       nodeName: node.data?.name,
+//       status: "loading",
+//       output: fullText,
+//     },
+//   });
+// }
 //  case "reasoning-delta":
 //         await channel.emit("workflow.chunk", {
 //           type: "data-workflow-node",
