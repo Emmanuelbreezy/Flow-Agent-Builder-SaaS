@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 import { openrouter } from "@openrouter/ai-sdk-provider";
+import { openai } from "@ai-sdk/openai";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { webSearch } from "@exalabs/ai-sdk";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
@@ -63,7 +64,14 @@ ${toolList ? `\nAvailable tools:\n${toolList}` : ""}`.trim();
     messages: modelMessages,
     tools: Object.keys(tools).length > 0 ? tools : undefined,
     stopWhen: stepCountIs(5),
+    //Optional
+    // providerOptions: {
+    //   gemini: {
+    //     reasoningSummary: "auto",
+    //   },
+    // },
     ...jsonOutput,
+
     onFinish: async () => {
       console.log("Stream finished");
       for (const client of mcpClients) {

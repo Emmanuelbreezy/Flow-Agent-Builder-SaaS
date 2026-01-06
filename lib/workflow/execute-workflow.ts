@@ -138,7 +138,6 @@ export async function executeWorkflow(
     try {
       // Execute node
       const result = await executor(node, context);
-      // console.log("-------EXECUTE_WORFLOW_RESULT----------", result.output);
       // Emit node result
       await channel.emit("workflow.chunk", {
         type: "data-workflow-node",
@@ -158,8 +157,6 @@ export async function executeWorkflow(
           node.type === NodeTypeEnum.AGENT ? result : result.output;
         context.outputs[node.id] = outputResult;
       }
-
-      console.log(result, "result");
 
       // Handle END node
       if (node.type === NodeTypeEnum.END) {
