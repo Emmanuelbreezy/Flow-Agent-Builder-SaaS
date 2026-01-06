@@ -1,14 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import React from "react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useWorkflow } from "@/context/workflow-context";
 import { ChatPanel } from "./chat-panel";
 
