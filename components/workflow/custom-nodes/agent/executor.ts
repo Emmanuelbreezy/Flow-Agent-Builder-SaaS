@@ -96,6 +96,7 @@ export async function executeAgent(
             nodeName: node.data?.name,
             status: "loading",
             type: "tool-call",
+            output: fullText,
             toolCall: {
               name: chunk.toolName,
             },
@@ -113,6 +114,7 @@ export async function executeAgent(
             nodeName: node.data?.name,
             status: "loading",
             type: "tool-result",
+            output: fullText,
             toolResult: {
               toolCallId: chunk.toolCallId,
               name: chunk.toolName,
