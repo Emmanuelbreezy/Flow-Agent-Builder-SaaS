@@ -45,11 +45,6 @@ import { nanoid } from "nanoid";
 import { createWorkflowTransport } from "@/lib/transport";
 import { cn } from "@/lib/utils";
 import { Loader, TextShimmerLoader } from "@/components/ui/loader";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "@/components/ai-elements/reasoning";
 import { Button } from "@/components/ui/button";
 
 interface ChatPanelProps {
@@ -211,116 +206,6 @@ export const ChatPanel = ({
         </div>
       </div>
     </div>
-    // <div>
-    //   <div className="border-b py-3">
-    //     <div className="flex items-center justify-between">
-    //       <h5>Workflow Preview</h5>
-    //       <Button
-    //         variant="ghost"
-    //         size="sm"
-    //         className="h-8 gap-2 text-muted-foreground"
-    //         onClick={handleNewChat}
-    //       >
-    //         New chat <Plus size={14} />
-    //       </Button>
-    //     </div>
-    //   </div>
-    //   <div className="relative flex flex-col h-full overflow-hidden">
-    //     {/* Messages */}
-    //     {messages.length > 0 ? (
-    //       <Conversation className="flex-1 h-full">
-    //         <ConversationContent>
-    //           {messages.map((message) => (
-    //             <Message from={message.role} key={message.id}>
-    //               <MessageContent className="text-[14.5px]!">
-    //                 {message.parts.map((part, i) => {
-    //                   switch (part.type) {
-    //                     case "text": {
-    //                       return (
-    //                         <MessageResponse key={`${message.id}-${i}`}>
-    //                           {part.text}
-    //                         </MessageResponse>
-    //                       );
-    //                     }
-    //                     // case "data-workflow-start": {
-    //                     //   return (
-    //                     //     <div
-    //                     //       key={`${message.id}-workflow-start-${i}`}
-    //                     //       className="text-sm text-muted-foreground"
-    //                     //     >
-    //                     //       🚀 Starting workflow execution...
-    //                     //     </div>
-    //                     //   );
-    //                     // }
-    //                     case "data-workflow-node":
-    //                       const data = part.data as any;
-    //                       return (
-    //                         <NodeDisplay
-    //                           key={`${message.id}-workflow-node-${i}`}
-    //                           data={data}
-    //                         />
-    //                       );
-
-    //                     default:
-    //                       return null;
-    //                   }
-    //                 })}
-    //               </MessageContent>
-    //             </Message>
-    //           ))}
-
-    //           {isLoading ? (
-    //             <div className="px-2">
-    //               <Loader variant={"dots"} size={"md"} />
-    //             </div>
-    //           ) : null}
-    //         </ConversationContent>
-    //         <ConversationScrollButton />
-    //       </Conversation>
-    //     ) : (
-    //       // <div className="flex-[1.3] flex flex-col items-center justify-center ">
-    //       <div className="flex-[1.3] flex flex-col items-center justify-center">
-    //         <Empty className="border-0">
-    //           <EmptyHeader>
-    //             <EmptyMedia variant="icon">
-    //               <Sparkles size={20} />
-    //             </EmptyMedia>
-    //             <EmptyTitle>Preview your workflow</EmptyTitle>
-    //             <EmptyDescription className="px-2">
-    //               Write a prompt as if you&apos;re the user to test your
-    //               workflow.
-    //             </EmptyDescription>
-    //           </EmptyHeader>
-    //         </Empty>
-    //       </div>
-    //     )}
-
-    //     {/* Input */}
-    //     <div className="shrink-0 w-full flex-[0.4] px-4 py-4 bg-background border-t">
-    //       <PromptInput
-    //         className="shadow-md rounded-xl!"
-    //         onSubmit={handleSubmit}
-    //       >
-    //         <PromptInputBody>
-    //           <PromptInputTextarea
-    //             onChange={(e) => setInput(e.target.value)}
-    //             value={input}
-    //             placeholder="Send a message..."
-    //             className="pt-3"
-    //           />
-    //         </PromptInputBody>
-    //         <PromptInputFooter className="flex justify-end">
-    //           <PromptInputSubmit
-    //             disabled={!input.trim() || !status || isLoading}
-    //             className="h-9! w-9! p-0! rounded-xl! bg-foreground! text-background!"
-    //           >
-    //             <ArrowUp size={18} />
-    //           </PromptInputSubmit>
-    //         </PromptInputFooter>
-    //       </PromptInput>
-    //     </div>
-    //   </div>
-    // </div>
   );
 };
 
@@ -345,65 +230,6 @@ export const NodeDisplay = ({ data }: NodeDisplayProps) => {
 
   const Icon = nodeConfig.icon;
   const { status, output, error, toolCall, toolResult } = data;
-
-  // const renderBody = () => {
-  //   switch (type) {
-  //     case "text-delta":
-  //       return (
-  //         <div className="px-3 py-2">
-  //           <MessageResponse>{output}</MessageResponse>
-  //         </div>
-  //       );
-
-  //     case "reasoning":
-  //       return (
-  //         <div className="px-3 py-2">
-  //           <Reasoning isStreaming={status === "loading"}>
-  //             <ReasoningTrigger />
-  //             <ReasoningContent>{output}</ReasoningContent>
-  //           </Reasoning>
-  //         </div>
-  //       );
-
-  //     case "tool-call":
-  //       return (
-  //         <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border">
-  //           <TextShimmerLoader text={`Calling ${toolCall?.name}...`} />
-  //         </div>
-  //       );
-
-  //     case "tool-result":
-  //       return (
-  //         <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border space-y-1">
-  //           <span className="text-sm">Used {toolResult?.name}</span>
-  //           <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
-  //             {JSON.stringify(toolResult?.result, null, 2)}
-  //           </pre>
-  //         </div>
-  //       );
-
-  //     default:
-  //       return (
-  //         <>
-  //           {status === "complete" && output && (
-  //             <div className="px-3 py-2">
-  //               <MessageResponse>
-  //                 {typeof output === "string"
-  //                   ? output
-  //                   : JSON.stringify(output, null, 2)}
-  //               </MessageResponse>
-  //             </div>
-  //           )}
-
-  //           {status === "error" && (
-  //             <div className="mx-3 my-2 p-3 bg-destructive/10 text-destructive rounded-md text-xs">
-  //               {JSON.stringify(error)}
-  //             </div>
-  //           )}
-  //         </>
-  //       );
-  //   }
-  // };
 
   return (
     <div>
@@ -460,7 +286,6 @@ export const NodeDisplay = ({ data }: NodeDisplayProps) => {
   );
 };
 
-// interface NodeDisplayProps {
 //   data: {
 //     id: string;
 //     nodeType: NodeType;
@@ -724,3 +549,175 @@ export const UserApproval = ({ data }: UserApprovalProps) => {
     </>
   );
 };
+
+// <div>
+//   <div className="border-b py-3">
+//     <div className="flex items-center justify-between">
+//       <h5>Workflow Preview</h5>
+//       <Button
+//         variant="ghost"
+//         size="sm"
+//         className="h-8 gap-2 text-muted-foreground"
+//         onClick={handleNewChat}
+//       >
+//         New chat <Plus size={14} />
+//       </Button>
+//     </div>
+//   </div>
+//   <div className="relative flex flex-col h-full overflow-hidden">
+//     {/* Messages */}
+//     {messages.length > 0 ? (
+//       <Conversation className="flex-1 h-full">
+//         <ConversationContent>
+//           {messages.map((message) => (
+//             <Message from={message.role} key={message.id}>
+//               <MessageContent className="text-[14.5px]!">
+//                 {message.parts.map((part, i) => {
+//                   switch (part.type) {
+//                     case "text": {
+//                       return (
+//                         <MessageResponse key={`${message.id}-${i}`}>
+//                           {part.text}
+//                         </MessageResponse>
+//                       );
+//                     }
+//                     // case "data-workflow-start": {
+//                     //   return (
+//                     //     <div
+//                     //       key={`${message.id}-workflow-start-${i}`}
+//                     //       className="text-sm text-muted-foreground"
+//                     //     >
+//                     //       🚀 Starting workflow execution...
+//                     //     </div>
+//                     //   );
+//                     // }
+//                     case "data-workflow-node":
+//                       const data = part.data as any;
+//                       return (
+//                         <NodeDisplay
+//                           key={`${message.id}-workflow-node-${i}`}
+//                           data={data}
+//                         />
+//                       );
+
+//                     default:
+//                       return null;
+//                   }
+//                 })}
+//               </MessageContent>
+//             </Message>
+//           ))}
+
+//           {isLoading ? (
+//             <div className="px-2">
+//               <Loader variant={"dots"} size={"md"} />
+//             </div>
+//           ) : null}
+//         </ConversationContent>
+//         <ConversationScrollButton />
+//       </Conversation>
+//     ) : (
+//       // <div className="flex-[1.3] flex flex-col items-center justify-center ">
+//       <div className="flex-[1.3] flex flex-col items-center justify-center">
+//         <Empty className="border-0">
+//           <EmptyHeader>
+//             <EmptyMedia variant="icon">
+//               <Sparkles size={20} />
+//             </EmptyMedia>
+//             <EmptyTitle>Preview your workflow</EmptyTitle>
+//             <EmptyDescription className="px-2">
+//               Write a prompt as if you&apos;re the user to test your
+//               workflow.
+//             </EmptyDescription>
+//           </EmptyHeader>
+//         </Empty>
+//       </div>
+//     )}
+
+//     {/* Input */}
+//     <div className="shrink-0 w-full flex-[0.4] px-4 py-4 bg-background border-t">
+//       <PromptInput
+//         className="shadow-md rounded-xl!"
+//         onSubmit={handleSubmit}
+//       >
+//         <PromptInputBody>
+//           <PromptInputTextarea
+//             onChange={(e) => setInput(e.target.value)}
+//             value={input}
+//             placeholder="Send a message..."
+//             className="pt-3"
+//           />
+//         </PromptInputBody>
+//         <PromptInputFooter className="flex justify-end">
+//           <PromptInputSubmit
+//             disabled={!input.trim() || !status || isLoading}
+//             className="h-9! w-9! p-0! rounded-xl! bg-foreground! text-background!"
+//           >
+//             <ArrowUp size={18} />
+//           </PromptInputSubmit>
+//         </PromptInputFooter>
+//       </PromptInput>
+//     </div>
+//   </div>
+// </div>
+
+// interface NodeDisplayProps {
+
+// const renderBody = () => {
+//   switch (type) {
+//     case "text-delta":
+//       return (
+//         <div className="px-3 py-2">
+//           <MessageResponse>{output}</MessageResponse>
+//         </div>
+//       );
+
+//     case "reasoning":
+//       return (
+//         <div className="px-3 py-2">
+//           <Reasoning isStreaming={status === "loading"}>
+//             <ReasoningTrigger />
+//             <ReasoningContent>{output}</ReasoningContent>
+//           </Reasoning>
+//         </div>
+//       );
+
+//     case "tool-call":
+//       return (
+//         <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border">
+//           <TextShimmerLoader text={`Calling ${toolCall?.name}...`} />
+//         </div>
+//       );
+
+//     case "tool-result":
+//       return (
+//         <div className="mx-3 my-2 px-3 py-2 bg-muted/50 rounded-lg border space-y-1">
+//           <span className="text-sm">Used {toolResult?.name}</span>
+//           <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+//             {JSON.stringify(toolResult?.result, null, 2)}
+//           </pre>
+//         </div>
+//       );
+
+//     default:
+//       return (
+//         <>
+//           {status === "complete" && output && (
+//             <div className="px-3 py-2">
+//               <MessageResponse>
+//                 {typeof output === "string"
+//                   ? output
+//                   : JSON.stringify(output, null, 2)}
+//               </MessageResponse>
+//             </div>
+//           )}
+
+//           {status === "error" && (
+//             <div className="mx-3 my-2 p-3 bg-destructive/10 text-destructive rounded-md text-xs">
+//               {JSON.stringify(error)}
+//             </div>
+//           )}
+//         </>
+//       );
+//   }
+// };

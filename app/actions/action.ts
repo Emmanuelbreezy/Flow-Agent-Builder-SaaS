@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 import { openrouter } from "@openrouter/ai-sdk-provider";
-import { openai } from "@ai-sdk/openai";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { webSearch } from "@exalabs/ai-sdk";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
@@ -47,16 +46,12 @@ export async function streamAgentAction({
     ?.map(([name]) => `- ${name}`)
     ?.join("\n");
 
-  // Find the last user message
-  const lastQuestion =
-    [...modelMessages].reverse().find((m) => m.role === "user")?.content || "";
+  const systemPrompt = `You are a helpful assistant.
+IMPORTANT: Only respond to the user's MOST RECENT message. Do NOT repeat or re-answer previous questions from the conversation history. The history is provided for context only.
+**Must Use the following instructions:
+${instructions}
 
-  const systemPrompt =
-    `You are a helpful assistant. Always answer the last question from the user: "${lastQuestion}".
-  **Must Use the following instructions:
-  "${instructions}"**
-Last question: "${lastQuestion}"
-${toolList ? `\nAvailable tools:\n${toolList}` : ""}`.trim();
+${toolList ? `Available tools:\n${toolList}` : ""}`.trim();
 
   const result = streamText({
     model: openrouter.chat(model),

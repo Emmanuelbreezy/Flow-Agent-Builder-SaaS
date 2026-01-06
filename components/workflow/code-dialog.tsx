@@ -19,13 +19,9 @@ export default function CodeDialog({ workflowId }: { workflowId?: string }) {
   const [mode, setMode] = useState<"script" | "iframe">("script");
   const [copied, setCopied] = useState(false);
 
-  // Replace with your actual domain or use window.location.origin
-  const domain = "https://flow-agent-one.vercel.app";
+  const domain = window.location.origin;
 
-  const code =
-    mode === "script"
-      ? `<script src="${domain}/embed.min.js" data-workflow-id="${workflowId}"></script>`
-      : `<iframe src="${domain}/embed-chat?workflowId=${workflowId}" width="100%" height="600px" style="border:none;"></iframe>`;
+  const code = `<script src="${domain}/embed/embed.min.js" data-workflow-id="${workflowId}"></script>`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(code);
@@ -43,33 +39,13 @@ export default function CodeDialog({ workflowId }: { workflowId?: string }) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Embed Chat</DialogTitle>
-          <DialogDescription>
-            Choose a method to add the chat to your site.
-          </DialogDescription>
+          <DialogTitle>Embed Workflow</DialogTitle>
+          <DialogDescription>Add the script to your site.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Toggles */}
-          <div className="flex p-1 bg-muted rounded-lg w-fit border">
-            {["script", "iframe"].map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m as any)}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md capitalize transition-all",
-                  mode === m
-                    ? "bg-background shadow-xs text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-
           {/* Code Block */}
-          <div className="relative rounded-lg border bg-zinc-950 dark:bg-black group overflow-hidden">
+          <div className="relative rounded-lg border bg-zinc-950 dark:bg-black overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
               <span className="text-xs font-mono text-muted">HTML</span>
               <Button
