@@ -8,7 +8,7 @@
   var btn = document.createElement("button");
   btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 70 56" class="nuxt-icon common-icon common-icon--icon page-bottom-bar__logo" height="30px" width="30px"><path fill="white" d="m27.377 44.368 11.027 11.53 8.597-13.663 22.813-2.48L66.132.284.214 7.447 3.895 46.92l23.482-2.552Z"></path></svg>`;
   btn.style =
-    "position:fixed;bottom:24px;right:24px;z-index:99999;width:56px;height:56px;padding:0;border-radius:50%;background:#6366f1;border:none;box-shadow:0 2px 8px #0002;cursor:pointer;display:flex;align-items:center;justify-content:center;";
+    "position:fixed;bottom:24px;right:24px;z-index:999999;width:56px;height:56px;padding:0;border-radius:50%;background:#6366f1;border:none;box-shadow:0 2px 8px #0002;cursor:pointer;display:flex;align-items:center;justify-content:center;";
   btn.id = "flowai-embed-btn";
   document.body.appendChild(btn);
 
