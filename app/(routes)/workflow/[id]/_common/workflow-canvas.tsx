@@ -137,8 +137,8 @@ const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
     updateWorkflow({ nodes, edges });
   };
 
-  console.log("Rendering WorkflowCanvas with nodes:", nodes);
-  console.log("Rendering WorkflowCanvas with edges:", edges);
+  // console.log("Rendering WorkflowCanvas with nodes:", nodes);
+  // console.log("Rendering WorkflowCanvas with edges:", edges);
 
   return (
     <>

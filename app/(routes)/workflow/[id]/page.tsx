@@ -30,7 +30,7 @@ const Page = () => {
           initialEdges={edges}
         >
           <div className="flex flex-col h-screen relative">
-            <WorkflowHeader name={workflow?.name} />
+            <WorkflowHeader name={workflow?.name} workflowId={workflow?.id} />
             <main className="flex-1 relative overflow-hidden">
               {isPending ? (
                 <div className="flex items-center justify-center h-full">

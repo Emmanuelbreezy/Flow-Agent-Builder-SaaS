@@ -13,7 +13,13 @@ import { cn } from "@/lib/utils";
 import { useWorkflow } from "@/context/workflow-context";
 import CodeDialog from "@/components/workflow/code-dialog";
 
-export function WorkflowHeader({ name }: { name?: string }) {
+export function WorkflowHeader({
+  name,
+  workflowId,
+}: {
+  name?: string;
+  workflowId?: string;
+}) {
   const { view, setView } = useWorkflow();
 
   const tabs = [
@@ -92,7 +98,7 @@ export function WorkflowHeader({ name }: { name?: string }) {
               <Code className="h-3.5 w-3.5" />
               Code
             </Button> */}
-            <CodeDialog />
+            <CodeDialog workflowId={workflowId} />
             <Button
               variant="ghost"
               size="sm"

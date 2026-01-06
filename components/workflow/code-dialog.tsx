@@ -11,84 +11,84 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  CodeBlock,
-  CodeBlockBody,
-  CodeBlockContent,
-  CodeBlockCopyButton,
-  CodeBlockHeader,
-  CodeBlockItem,
-} from "@/components/ui/code-block";
-import { Code } from "lucide-react";
+import { Check, Copy, Code } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const EMBED_HTML = `
-<iframe
-  src="https://yourdomain.com/widget"
-  style="width:350px;height:600px;border:none;border-radius:12px;"
-  title="AI Chat"
-></iframe>
-`;
-
-const EMBED_SCRIPT = `<button id="open-my-ai-chat">Chat with AI</button>
-<script src="https://yourdomain.com/embed.js"></script>`;
-
-const code = [
-  {
-    language: "html",
-    filename: "Embed as iframe",
-    code: EMBED_HTML,
-  },
-  {
-    language: "html",
-    filename: "Embed with script",
-    code: EMBED_SCRIPT,
-  },
-];
-
-const CodeDialog = () => {
+export default function CodeDialog({ workflowId }: { workflowId?: string }) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"script" | "iframe">("script");
+  const [copied, setCopied] = useState(false);
+
+  // Replace with your actual domain or use window.location.origin
+  const domain = "https://flow-agent-one.vercel.app";
+
+  const code =
+    mode === "script"
+      ? `<script src="${domain}/embed.min.js" data-workflow-id="${workflowId}"></script>`
+      : `<iframe src="${domain}/embed-chat?workflowId=${workflowId}" width="100%" height="600px" style="border:none;"></iframe>`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger>
-        <Button variant="ghost" size="sm" className="h-8 gap-1.5">
-          <Code className="h-3.5 w-3.5" />
+        <Button variant="ghost" size="sm" className="h-8 gap-2">
+          <Code className="size-3.5" />
           Code
         </Button>
       </DialogTrigger>
-      <DialogContent
-        overlayClass="bg-black/10"
-        className="w-full! sm:max-w-md! "
-      >
-        <DialogHeader className="">
-          <DialogTitle>Embed AI Chat on your site</DialogTitle>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Embed Chat</DialogTitle>
           <DialogDescription>
-            Copy and paste the code snippet into your website.
+            Choose a method to add the chat to your site.
           </DialogDescription>
         </DialogHeader>
-        <div className="w-full max-w-sm! h-full">
-          <CodeBlock
-            className="h-full!"
-            data={code}
-            defaultValue={code[0].filename}
-          >
-            <CodeBlockHeader>
-              <CodeBlockCopyButton />
-            </CodeBlockHeader>
-            <CodeBlockBody>
-              {(item) => (
-                <CodeBlockItem key={item.filename} value={item.filename}>
-                  <CodeBlockContent language={item.language as any}>
-                    {item.code}
-                  </CodeBlockContent>
-                </CodeBlockItem>
-              )}
-            </CodeBlockBody>
-          </CodeBlock>
+
+        <div className="space-y-4">
+          {/* Toggles */}
+          <div className="flex p-1 bg-muted rounded-lg w-fit border">
+            {["script", "iframe"].map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m as any)}
+                className={cn(
+                  "px-3 py-1.5 text-sm font-medium rounded-md capitalize transition-all",
+                  mode === m
+                    ? "bg-background shadow-xs text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+
+          {/* Code Block */}
+          <div className="relative rounded-lg border bg-zinc-950 dark:bg-black group overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+              <span className="text-xs font-mono text-muted">HTML</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-muted"
+                onClick={copyToClipboard}
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+              </Button>
+            </div>
+            <div className="p-4 overflow-x-auto">
+              <pre className="text-sm font-mono text-white whitespace-pre-wrap break-all">
+                {code}
+              </pre>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default CodeDialog;
+}
