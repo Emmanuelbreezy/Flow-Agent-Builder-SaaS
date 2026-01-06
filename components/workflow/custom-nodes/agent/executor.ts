@@ -81,7 +81,7 @@ export async function executeAgent(
             nodeName: node.data?.name,
             status: "loading",
             type: "text-delta",
-            delta: chunk.text,
+            output: fullText,
           },
         });
         break;
@@ -135,6 +135,20 @@ export async function executeAgent(
 //
 //
 //
+
+// case "finish":
+//   await channel.emit("workflow.chunk", {
+//     type: "data-workflow-node",
+//     id: node.id,
+//     data: {
+//       id: node.id,
+//       nodeType: node.type,
+//       nodeName: node.data?.name,
+//       status: "complete",
+//       output: fullText,
+//     },
+//   });
+//   break;
 //
 // for await (const chunk of result.textStream) {
 //   fullText += chunk;

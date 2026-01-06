@@ -16,17 +16,8 @@ const ChatView = ({ workflowId }: { workflowId: string }) => {
   const { view, setView } = useWorkflow();
   const isPreview = view === "preview";
 
-  // Move states here
-  const [chatId, setChatId] = useState<string | null>(() =>
-    crypto.randomUUID()
-  );
-
   const handlePreviewClose = () => {
     setView("edit");
-  };
-
-  const handleNewChat = () => {
-    setChatId(crypto.randomUUID());
   };
 
   // Dummy UIMessage for testing
@@ -154,29 +145,11 @@ const ChatView = ({ workflowId }: { workflowId: string }) => {
         <SheetContent
           side="right"
           showCloseButton={false}
-          className="sm:max-w-lg! w-full p-0 border-l top-18! h-full max-h-[calc(100vh-5rem)] z-95 bg-card rounded-lg! overflow-hidden shadow-lg"
+          className="sm:max-w-lg! w-full p-0 top-18! h-full max-h-[calc(100vh-5rem)] z-95 bg-background rounded-md overflow-hidden mr-1"
           overlayClass="bg-black/5! backdrop-blur-none!"
         >
-          <SheetHeader className="border-b py-3">
-            <div className="flex items-center justify-between">
-              <SheetTitle>Workflow Preview</SheetTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 gap-2 text-muted-foreground"
-                onClick={handleNewChat}
-              >
-                New chat <Plus size={14} />
-              </Button>
-            </div>
-          </SheetHeader>
-
           <div className="h-full">
-            <ChatPanel
-              workflowId={workflowId}
-              chatId={chatId}
-              initialMessages={[]}
-            />
+            <ChatPanel workflowId={workflowId} initialMessages={[]} />
           </div>
         </SheetContent>
       </Sheet>

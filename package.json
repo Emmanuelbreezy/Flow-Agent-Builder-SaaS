@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "build:embed": "npx esbuild public/embed.js --minify --outfile=public/embed.min.js"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.2",
     "@ai-sdk/mcp": "^1.0.2",
+    "@ai-sdk/openai": "^3.0.2",
     "@ai-sdk/react": "^3.0.3",
     "@base-ui/react": "^1.0.0",
     "@diceui/tags-input": "^0.7.2",

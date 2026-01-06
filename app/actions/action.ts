@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 import { openrouter } from "@openrouter/ai-sdk-provider";
-import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { webSearch } from "@exalabs/ai-sdk";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
@@ -58,14 +58,20 @@ export async function streamAgentAction({
 Last question: "${lastQuestion}"
 ${toolList ? `\nAvailable tools:\n${toolList}` : ""}`.trim();
 
-  //model: openrouter.chat(model),
   const result = streamText({
-    model: google(model),
+    model: openrouter.chat(model),
     system: systemPrompt,
     messages: modelMessages,
     tools: Object.keys(tools).length > 0 ? tools : undefined,
     stopWhen: stepCountIs(5),
+    //Optional
+    // providerOptions: {
+    //   gemini: {
+    //     reasoningSummary: "auto",
+    //   },
+    // },
     ...jsonOutput,
+
     onFinish: async () => {
       console.log("Stream finished");
       for (const client of mcpClients) {
