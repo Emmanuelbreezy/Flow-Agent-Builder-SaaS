@@ -2,12 +2,11 @@ import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
 
 export default withAuth(async function middleware() {}, {
   // Middleware still runs on all routes, but doesn't protect the blog route
-  isReturnToCurrentPage: true,
   publicPaths: [
     "/",
+    "/embed-chat",
     "/api/upstash/trigger",
     "/api/workflow/chat",
-    "/embed-chat",
   ],
 });
 
